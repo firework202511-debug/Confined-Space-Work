@@ -491,16 +491,6 @@ async function loadDD() {
     // const res = await fetch(`${API}/dropdown`);
     // S.dd = await res.json(); // 陣列: [{company,project,dept,section}, ...]
 
-    // ── DEMO data（部署後刪除此區，取消上方註解）──
-    S.dd = [
-      { company:'台灣工程股份有限公司', project:'高雄港區管線維護工程',   dept:'工務部',    section:'第一課' },
-      { company:'台灣工程股份有限公司', project:'屏東水處理廠更新工程',   dept:'機電部',    section:'第二課' },
-      { company:'台灣工程股份有限公司', project:'橋頭廠區消防設備更換',   dept:'工務部',    section:'維護課' },
-      { company:'南方承攬有限公司',     project:'台南化工廠改善工程',     dept:'安全環境部', section:'品管課' },
-      { company:'南方承攬有限公司',     project:'高雄儲槽清洗作業',       dept:'工務部',    section:'第三課' },
-      { company:'北建工程行',           project:'高雄港區排水改善工程',   dept:'土木工程部', section:'第一課' },
-    ];
-    // ── END DEMO ──
 
     // 填入公司下拉（去重）
     const companies = [...new Set(S.dd.map(r => r.company))].sort();
@@ -707,14 +697,12 @@ async function toPage2() {
     showOv('新增選單資料…', '將手動輸入的資料寫入 Google Sheets', []);
     try {
       // REAL:
-      // await fetch(`${API}/dropdown/add`, {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ company:f.company, project:f.project, dept:f.dept, section:f.section })
-      // });
+      await fetch(`${API}/dropdown/add`, {
+      method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ company:f.company, project:f.project, dept:f.dept, section:f.section })
+      });
 
-      // DEMO: simulate
-      await delay(600);
       // 更新本地 S.dd
       S.dd.push({ company:f.company, project:f.project, dept:f.dept, section:f.section });
       // 更新公司下拉
@@ -800,13 +788,11 @@ async function submitAll() {
 
     ovStep('s3','active');
     // REAL:
-    // const res = await fetch(`${API}/submit`, {
-    //   method:'POST', headers:{'Content-Type':'application/json'},
-    //   body: JSON.stringify({ fields, pdfBase64 })
-    // });
-    // const { pdfUrl } = await res.json();
-    await delay(1200);
-    const pdfUrl = 'https://drive.google.com/file/d/DEMO_ID/view';
+    const res = await fetch(`${API}/submit`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+     body: JSON.stringify({ fields, pdfBase64 })
+     });
+    const { pdfUrl } = await res.json();
     ovStep('s3','done');
 
     ovStep('s4','active');
