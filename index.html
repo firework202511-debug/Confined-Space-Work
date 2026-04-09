@@ -488,8 +488,8 @@ async function loadDD() {
   setHint('hintCompany', '從 Google Sheets 載入中…', 'loading');
   try {
     // ── REAL: 從 Worker 取得全部 DROPDOWNDATA ──
-    // const res = await fetch(`${API}/dropdown`);
-    // S.dd = await res.json(); // 陣列: [{company,project,dept,section}, ...]
+    const res = await fetch(`${API}/dropdown`);
+    S.dd = await res.json(); // 陣列: [{company,project,dept,section}, ...]
 
 
     // 填入公司下拉（去重）
@@ -911,10 +911,8 @@ async function doQuery() {
   const dt   = document.getElementById('qDate').value;
   showOv('查詢中…', '正在從 Google Sheets 取得記錄', []);
   try {
-    // REAL: const params = new URLSearchParams({company:co,project:prj,inspector:insp,date:dt});
-    //       const rows = await (await fetch(`${API}/query?${params}`)).json();
-    await delay(700);
-    const rows = demoQuery(co,prj,insp,dt);
+    const params = new URLSearchParams({company:co,project:prj,inspector:insp,date:dt});
+    const rows = await (await fetch(`${API}/query?${params}`)).json();
     hideOv();
     renderResults(rows);
   } catch(e) { hideOv(); toast('查詢失敗：'+e.message,'err'); }
