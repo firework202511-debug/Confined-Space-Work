@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>局限作業通報系統</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<!-- jsPDF for client-side PDF generation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root {
+  --bg:           #f5f6f8;
+  --surface:      #ffffff;
+  --surface-2:    #f0f2f6;
+  --surface-3:    #e8ebf0;
+  --border:       #dde1ea;
+  --border-focus: #3664c8;
+  --text-1:       #141820;
+  --text-2:       #4b5465;
+  --text-3:       #8e97aa;
+  --blue:         #2952c8;
+  --blue-lt:      #eef2fc;
+  --blue-dk:      #1d3d9e;
+  --green:        #0f7b5a;
+  --green-lt:     #ebfaf4;
+  --red:          #c0392b;
+  --red-lt:       #fdf2f1;
+  --amber:        #b45309;
+  --amber-lt:     #fffbeb;
+  --shadow-xs:    0 1px 2px rgba(0,0,0,.05);
+  --shadow-sm:    0 2px 8px rgba(0,0,0,.07);
+  --shadow-md:    0 4px 20px rgba(0,0,0,.09);
+  --shadow-lg:    0 8px 40px rgba(0,0,0,.12);
+  --r:            10px;
+  --r-sm:         6px;
+  --r-lg:         16px;
+  --ease:         cubic-bezier(.4,0,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:15px;scroll-behavior:smooth}
+body{
+  font-family:'Noto Sans TC',sans-serif;
+  background:var(--bg);color:var(--text-1);
+  min-height:100vh;line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ── Header ── */
+.hdr{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:80;
+  box-shadow:var(--shadow-xs);
+}
+.hdr-in{
+  max-width:1060px;margin:0 auto;padding:0 24px;
+  display:flex;align-items:center;gap:14px;height:56px;
+}
+.hdr-badge{
+  width:34px;height:34px;border-radius:8px;
+  background:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.hdr-badge svg{width:18px;height:18px;fill:#fff}
+.hdr-name{font-size:.93rem;font-weight:700;letter-spacing:-.01em}
+.hdr-sub{font-size:.72rem;color:var(--text-3);margin-top:1px}
+.hdr-nav{margin-left:auto;display:flex;gap:5px}
+.hdr-nav-btn{
+  padding:6px 15px;border-radius:var(--r-sm);
+  font-size:.8rem;font-weight:500;font-family:inherit;
+  cursor:pointer;border:1px solid var(--border);
+  background:transparent;color:var(--text-2);
+  transition:all .15s var(--ease);
+}
+.hdr-nav-btn:hover{background:var(--surface-2);color:var(--text-1)}
+.hdr-nav-btn.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+
+/* ── Layout ── */
+.wrap{max-width:1060px;margin:0 auto;padding:26px 24px 72px}
+
+/* ── Stepper ── */
+.stepper{
+  display:flex;align-items:center;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:16px 28px;
+  margin-bottom:22px;box-shadow:var(--shadow-xs);
+  gap:0;
+}
+.st{display:flex;align-items:center;gap:10px;flex:1}
+.st-dot{
+  width:30px;height:30px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.75rem;font-weight:700;
+  background:var(--surface-3);color:var(--text-3);
+  border:2px solid var(--border);
+  transition:all .25s var(--ease);
+}
+.st.on  .st-dot{background:var(--blue);color:#fff;border-color:var(--blue)}
+.st.ok  .st-dot{background:var(--green);color:#fff;border-color:var(--green)}
+.st-txt{font-size:.8rem;color:var(--text-3)}
+.st.on  .st-txt{color:var(--blue);font-weight:600}
+.st.ok  .st-txt{color:var(--green)}
+.st-line{flex:none;width:36px;height:2px;background:var(--border);margin:0 4px;border-radius:2px;transition:background .3s}
+.st-line.ok{background:var(--green)}
+
+/* ── Card ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-xs);overflow:hidden}
+.card-hd{
+  padding:18px 28px 14px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;
+}
+.card-ico{
+  width:34px;height:34px;border-radius:var(--r-sm);
+  background:var(--blue-lt);color:var(--blue);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.card-hd h2{font-size:.97rem;font-weight:700;letter-spacing:-.01em}
+.card-hd p{font-size:.76rem;color:var(--text-2);margin-top:2px}
+.card-bd{padding:24px 28px}
+
+/* ── Section label ── */
+.sec{display:flex;align-items:center;gap:10px;margin:22px 0 16px}
+.sec span{font-size:.72rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;white-space:nowrap}
+.sec::before,.sec::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── Grid / Form ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.full{grid-column:1/-1}
+.fg{display:flex;flex-direction:column;gap:5px}
+label{font-size:.78rem;font-weight:600;color:var(--text-2)}
+label .r{color:var(--red);margin-left:2px}
+.inp{
+  width:100%;padding:8px 11px;
+  border:1.5px solid var(--border);border-radius:var(--r-sm);
+  font-size:.86rem;font-family:inherit;color:var(--text-1);
+  background:var(--surface);transition:border-color .15s,box-shadow .15s;
+  outline:none;appearance:none;-webkit-appearance:none;
+}
+.inp:focus{border-color:var(--border-focus);box-shadow:0 0 0 3px rgba(50,100,200,.1)}
+.inp::placeholder{color:var(--text-3)}
+.sw{position:relative}
+.sw::after{
+  content:'▾';position:absolute;right:10px;top:50%;
+  transform:translateY(-50%);pointer-events:none;
+  color:var(--text-3);font-size:.75rem;
+}
+select.inp{padding-right:26px;cursor:pointer}
+.manual-wrap{
+  margin-top:7px;padding:11px;
+  background:var(--surface-2);border:1px dashed var(--border);
+  border-radius:var(--r-sm);display:none;
+}
+.manual-wrap.show{display:block}
+.manual-hint{font-size:.74rem;color:var(--text-2);margin-bottom:7px}
+.manual-hint a{color:var(--blue);cursor:pointer}
+
+/* ── Buttons ── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  padding:9px 20px;border-radius:var(--r-sm);
+  font-size:.85rem;font-weight:600;font-family:inherit;
+  cursor:pointer;border:none;transition:all .15s var(--ease);
+  letter-spacing:.01em;
+}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:var(--blue-dk);box-shadow:0 3px 10px rgba(41,82,200,.3)}
+.btn-ghost{background:transparent;color:var(--text-2);border:1.5px solid var(--border)}
+.btn-ghost:hover{background:var(--surface-2);color:var(--text-1)}
+.btn-success{background:var(--green);color:#fff}
+.btn-success:hover{background:#0a6349}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-row{
+  display:flex;gap:9px;justify-content:flex-end;
+  margin-top:26px;padding-top:18px;border-top:1px solid var(--border);
+}
+
+/* ── Upload Grid ── */
+.upload-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.up-box{
+  border:1.5px dashed var(--border);border-radius:var(--r);
+  padding:14px;background:var(--surface-2);
+  transition:all .18s var(--ease);
+}
+.up-box:hover{border-color:var(--border-focus);background:var(--blue-lt)}
+.up-box.done{border-style:solid;border-color:var(--green);background:var(--green-lt)}
+.up-box.err{border-color:var(--red);background:var(--red-lt)}
+.up-lbl{
+  font-size:.79rem;font-weight:600;color:var(--text-2);
+  margin-bottom:9px;display:flex;align-items:center;gap:6px;
+}
+.up-num{
+  width:19px;height:19px;border-radius:50%;
+  background:var(--blue);color:#fff;
+  font-size:.65rem;font-weight:700;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+}
+.up-box.done .up-num{background:var(--green)}
+.up-zone{
+  border:1px dashed var(--border);border-radius:var(--r-sm);
+  padding:10px 8px;text-align:center;cursor:pointer;
+  background:var(--surface);transition:border-color .15s;
+}
+.up-zone:hover{border-color:var(--blue)}
+.up-zone input{display:none}
+.up-zone .zi{font-size:1.3rem;margin-bottom:3px}
+.up-zone .zt{font-size:.7rem;color:var(--text-3)}
+.up-zone .za{font-size:.74rem;color:var(--blue);font-weight:600;margin-top:2px}
+.previews{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.prev-item{
+  position:relative;border-radius:var(--r-sm);
+  overflow:hidden;border:1px solid var(--border);
+}
+.prev-item img{width:54px;height:54px;object-fit:cover;display:block}
+.prev-item .fi{
+  width:54px;height:54px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:var(--blue-lt);font-size:1.1rem;gap:2px;
+}
+.prev-item .fn{font-size:.58rem;color:var(--text-2);text-align:center;padding:0 3px;max-width:54px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rm{
+  position:absolute;top:2px;right:2px;
+  width:15px;height:15px;border-radius:50%;
+  background:rgba(0,0,0,.55);color:#fff;
+  font-size:.58rem;border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.req-tag{font-size:.62rem;background:var(--red-lt);color:var(--red);border-radius:3px;padding:1px 5px;font-weight:600}
+
+/* ── Progress bar (upload) ── */
+.progress-wrap{margin-top:10px;display:none}
+.progress-wrap.show{display:block}
+.progress-bar{
+  height:4px;background:var(--border);border-radius:2px;overflow:hidden;
+}
+.progress-fill{
+  height:100%;background:var(--blue);border-radius:2px;width:0%;
+  transition:width .3s var(--ease);
+}
+.progress-label{font-size:.72rem;color:var(--text-2);margin-top:5px}
+
+/* ── Query ── */
+.q-bar{
+  display:flex;gap:10px;align-items:flex-end;
+  padding:18px 28px;background:var(--surface-2);
+  border-bottom:1px solid var(--border);flex-wrap:wrap;
+}
+.q-bar .fg{flex:1;min-width:150px}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.83rem}
+thead tr{background:var(--surface-2)}
+th{
+  padding:9px 14px;text-align:left;
+  font-size:.72rem;font-weight:700;color:var(--text-2);
+  letter-spacing:.04em;border-bottom:2px solid var(--border);white-space:nowrap;
+}
+td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface-2)}
+.pdf-btn{
+  display:inline-flex;align-items:center;gap:4px;
+  color:var(--blue);text-decoration:none;font-weight:600;
+  padding:4px 9px;border-radius:var(--r-sm);
+  background:var(--blue-lt);font-size:.76rem;
+  transition:all .15s;
+}
+.pdf-btn:hover{background:var(--blue);color:#fff}
+.empty{text-align:center;padding:48px 24px;color:var(--text-3)}
+.empty .ei{font-size:2.2rem;margin-bottom:10px}
+.empty p{font-size:.85rem}
+
+/* ── Overlay ── */
+.overlay{
+  position:fixed;inset:0;
+  background:rgba(245,246,248,.88);
+  backdrop-filter:blur(4px);
+  z-index:200;display:none;place-items:center;
+}
+.overlay.on{display:grid}
+.ov-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:36px 52px;
+  text-align:center;box-shadow:var(--shadow-lg);
+  min-width:280px;
+}
+.spin{
+  width:42px;height:42px;border:3px solid var(--border);
+  border-top-color:var(--blue);border-radius:50%;
+  animation:spin 1s linear infinite;margin:0 auto 16px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ov-title{font-size:.97rem;font-weight:700;margin-bottom:6px}
+.ov-sub{font-size:.82rem;color:var(--text-2)}
+.ov-step{
+  margin-top:16px;display:flex;flex-direction:column;gap:6px;
+}
+.ov-step-item{
+  display:flex;align-items:center;gap:8px;
+  font-size:.78rem;color:var(--text-3);
+  padding:6px 10px;border-radius:var(--r-sm);
+  transition:all .2s;
+}
+.ov-step-item.active{background:var(--blue-lt);color:var(--blue);font-weight:600}
+.ov-step-item.done{background:var(--green-lt);color:var(--green)}
+.ov-step-dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0}
+
+/* ── Toast ── */
+.toast-wrap{position:fixed;bottom:22px;right:22px;z-index:300;display:flex;flex-direction:column;gap:7px}
+.toast{
+  background:var(--text-1);color:#fff;
+  padding:11px 17px;border-radius:var(--r);
+  font-size:.82rem;box-shadow:var(--shadow-lg);
+  display:flex;align-items:center;gap:9px;
+  animation:tIn .22s var(--ease);max-width:300px;
+}
+.toast.ok{background:var(--green)}
+.toast.err{background:var(--red)}
+.toast.warn{background:var(--amber)}
+@keyframes tIn{from{transform:translateX(32px);opacity:0}to{transform:none;opacity:1}}
+
+/* ── Done page ── */
+.done-wrap{text-align:center;padding:56px 28px}
+.done-icon{
+  width:68px;height:68px;border-radius:50%;
+  background:var(--green-lt);border:2px solid var(--green);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 20px;font-size:1.8rem;
+}
+.done-title{font-size:1.15rem;font-weight:700;margin-bottom:8px}
+.done-sub{font-size:.85rem;color:var(--text-2);margin-bottom:28px}
+.done-pdf{margin-bottom:24px}
+
+/* ── Misc ── */
+.hidden{display:none!important}
+.mono{font-family:'Courier New',monospace;font-size:.78rem}
+.tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:.7rem;font-weight:600}
+.tag-b{background:var(--blue-lt);color:var(--blue)}
+@media(max-width:680px){
+  .g2,.g3,.upload-grid{grid-template-columns:1fr}
+  .wrap{padding:14px 14px 60px}
+  .card-bd{padding:16px 14px}
+  .card-hd{padding:14px 16px}
+  .q-bar{padding:14px 16px}
+  .stepper{padding:14px 16px}
+  .hdr-in{padding:0 14px}
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="hdr">
+  <div class="hdr-in">
+    <div class="hdr-badge">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-4H7l5-8v4h4l-5 8z"/></svg>
+    </div>
+    <div>
+      <div class="hdr-name">局限作業通報系統</div>
+      <div class="hdr-sub">Confined Space Work Notification System</div>
+    </div>
+    <nav class="hdr-nav">
+      <button class="hdr-nav-btn on" id="navForm" onclick="switchView('form')">📋 新增通報</button>
+      <button class="hdr-nav-btn" id="navQuery" onclick="switchView('query')">🔍 查詢記錄</button>
+    </nav>
+  </div>
+</header>
+
+<!-- Overlay -->
+<div class="overlay" id="overlay">
+  <div class="ov-card">
+    <div class="spin"></div>
+    <div class="ov-title" id="ovTitle">處理中…</div>
+    <div class="ov-sub" id="ovSub">請稍候</div>
+    <div class="ov-step" id="ovSteps"></div>
+  </div>
+</div>
+
+<!-- Toasts -->
+<div class="toast-wrap" id="toasts"></div>
+
+<main class="wrap">
+
+<!-- ═══════════ FORM VIEW ═══════════ -->
+<div id="formView">
+
+  <!-- Stepper -->
+  <div class="stepper">
+    <div class="st on" id="st1"><div class="st-dot" id="sd1">1</div><div class="st-txt">基本資料</div></div>
+    <div class="st-line" id="sl1"></div>
+    <div class="st" id="st2"><div class="st-dot" id="sd2">2</div><div class="st-txt">文件上傳</div></div>
+    <div class="st-line" id="sl2"></div>
+    <div class="st" id="st3"><div class="st-dot" id="sd3">3</div><div class="st-txt">完成送出</div></div>
+  </div>
+
+  <!-- Page 1 -->
+  <div id="pg1">
+    <div class="card">
+      <div class="card-hd">
+        <div class="card-ico">
+          <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        </div>
+        <div>
+          <h2>基本資料填寫</h2>
+          <p>下拉選單連動 Google Sheets，找不到可手動新增</p>
+        </div>
+      </div>
+      <div class="card-bd">
+
+        <div class="sec"><span>工程資訊</span></div>
+        <div class="g2">
+          <!-- 承攬商 -->
+          <div class="fg">
+            <label>承攬商公司名稱</label>
+            <div class="sw"><select class="inp" id="selContractor" onchange="onSel('contractor')"><option value="">— 載入中 —</option></select></div>
+            <div class="manual-wrap" id="mwContractor">
+              <div class="manual-hint">找不到？手動輸入，送出後自動新增 <a onclick="closeMw('contractor')">收起</a></div>
+              <input type="text" class="inp" id="miContractor" placeholder="輸入承攬商名稱">
+            </div>
+          </div>
+          <!-- 工程名稱 -->
+          <div class="fg">
+            <label>工程名稱</label>
+            <div class="sw"><select class="inp" id="selProject" onchange="onSel('project')"><option value="">— 載入中 —</option></select></div>
+            <div class="manual-wrap" id="mwProject">
+              <div class="manual-hint">找不到？手動輸入 <a onclick="closeMw('project')">收起</a></div>
+              <input type="text" class="inp" id="miProject" placeholder="輸入工程名稱">
+            </div>
+          </div>
+          <!-- 主辦部門 -->
+          <div class="fg">
+            <label>主辦部門</label>
+            <div class="sw"><select class="inp" id="selDept" onchange="onSel('dept')"><option value="">— 載入中 —</option></select></div>
+            <div class="manual-wrap" id="mwDept">
+              <div class="manual-hint">找不到？手動輸入 <a onclick="closeMw('dept')">收起</a></div>
+              <input type="text" class="inp" id="miDept" placeholder="輸入主辦部門">
+            </div>
+          </div>
+          <!-- 主辦課別 -->
+          <div class="fg">
+            <label>主辦課別</label>
+            <div class="sw"><select class="inp" id="selSection" onchange="onSel('section')"><option value="">— 載入中 —</option></select></div>
+            <div class="manual-wrap" id="mwSection">
+              <div class="manual-hint">找不到？手動輸入 <a onclick="closeMw('section')">收起</a></div>
+              <input type="text" class="inp" id="miSection" placeholder="輸入主辦課別">
+            </div>
+          </div>
+        </div>
+
+        <div class="sec"><span>作業人員與時間</span></div>
+        <div class="g3">
+          <div class="fg">
+            <label>檢驗員姓名<span class="r">*</span></label>
+            <input type="text" class="inp" id="fInspector" placeholder="請輸入姓名">
+          </div>
+          <div class="fg">
+            <label>開始時間<span class="r">*</span></label>
+            <input type="datetime-local" class="inp" id="fStart">
+          </div>
+          <div class="fg">
+            <label>結束時間<span class="r">*</span></label>
+            <input type="datetime-local" class="inp" id="fEnd">
+          </div>
+        </div>
+
+        <div class="sec"><span>作業地點</span></div>
+        <div class="g2">
+          <div class="fg">
+            <label>作業區域<span class="r">*</span></label>
+            <input type="text" class="inp" id="fArea" placeholder="例：廠區 A 棟">
+          </div>
+          <div class="fg">
+            <label>作業詳細位置</label>
+            <input type="text" class="inp" id="fDetail" placeholder="例：B1 管道間 H-3">
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="toPage2()">
+            下一步：上傳資料
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div><!-- /pg1 -->
+
+  <!-- Page 2 -->
+  <div id="pg2" class="hidden">
+    <div class="card">
+      <div class="card-hd">
+        <div class="card-ico">
+          <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        </div>
+        <div>
+          <h2>文件 & 照片上傳</h2>
+          <p>所有 10 項皆必填 — 照片將直接嵌入 PDF 報告，不另行儲存</p>
+        </div>
+      </div>
+      <div class="card-bd">
+        <div class="upload-grid" id="upGrid"></div>
+        <div class="btn-row">
+          <button class="btn btn-ghost" onclick="toPage1()">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
+            返回
+          </button>
+          <button class="btn btn-success" onclick="submitAll()">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            生成 PDF 並上傳
+          </button>
+        </div>
+      </div>
+    </div>
+  </div><!-- /pg2 -->
+
+  <!-- Page 3 -->
+  <div id="pg3" class="hidden">
+    <div class="card">
+      <div class="done-wrap">
+        <div class="done-icon">✅</div>
+        <div class="done-title">通報資料上傳成功</div>
+        <div class="done-sub">PDF 報告已生成並儲存至 Google Drive，記錄已寫入 Google Sheets</div>
+        <div class="done-pdf" id="donePdfArea"></div>
+        <div style="display:flex;gap:10px;justify-content:center">
+          <button class="btn btn-primary" onclick="resetAll()">新增下一筆通報</button>
+          <button class="btn btn-ghost" onclick="switchView('query')">查詢所有記錄</button>
+        </div>
+      </div>
+    </div>
+  </div><!-- /pg3 -->
+
+</div><!-- /formView -->
+
+<!-- ═══════════ QUERY VIEW ═══════════ -->
+<div id="queryView" class="hidden">
+  <div class="card">
+    <div class="card-hd">
+      <div class="card-ico" style="background:var(--green-lt);color:var(--green)">
+        <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div>
+        <h2>查詢通報記錄</h2>
+        <p>僅輸入公司 → 近一個月；僅輸入日期 → 當日全部；兩者皆輸入 → 交叉篩選</p>
+      </div>
+    </div>
+
+    <div class="q-bar">
+      <div class="fg">
+        <label>承攬商公司</label>
+        <div class="sw"><select class="inp" id="qCo"><option value="">— 全部 —</option></select></div>
+      </div>
+      <div class="fg">
+        <label>工程名稱</label>
+        <div class="sw"><select class="inp" id="qPrj"><option value="">— 全部 —</option></select></div>
+      </div>
+      <div class="fg">
+        <label>檢驗員姓名</label>
+        <input type="text" class="inp" id="qInsp" placeholder="輸入姓名關鍵字">
+      </div>
+      <div class="fg">
+        <label>查詢日期</label>
+        <input type="date" class="inp" id="qDate">
+      </div>
+      <div style="padding-bottom:1px;display:flex;gap:6px">
+        <button class="btn btn-primary" onclick="doQuery()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          查詢
+        </button>
+        <button class="btn btn-ghost" onclick="clearQ()">清除</button>
+      </div>
+    </div>
+
+    <div class="tbl-wrap" id="qResults">
+      <div class="empty"><div class="ei">🔍</div><p>請設定查詢條件後按下查詢</p></div>
+    </div>
+  </div>
+</div><!-- /queryView -->
+
+</main>
+
+<!-- ═══════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════ -->
+<script>
+// ──────────────────────────────────────────
+// CONFIG — 請替換為實際部署的 Worker URL
+// ──────────────────────────────────────────
+const API = 'https://confinedspacework.firework202511.workers.dev';
+
+// ──────────────────────────────────────────
+// 上傳項目定義
+// ──────────────────────────────────────────
+const ITEMS = [
+  { k:'kaohsiung',   label:'高市檢申報擷取畫面' },
+  { k:'permit',      label:'局限空間進入許可證' },
+  { k:'checklist1',  label:'作業前作業場所檢點表' },
+  { k:'checklist2',  label:'作業前作業安全檢核表' },
+  { k:'ventilation', label:'通風設備' },
+  { k:'gas',         label:'氣體偵測器' },
+  { k:'rescue',      label:'急救設備及空氣呼吸器' },
+  { k:'signage',     label:'作業場所告示牌' },
+  { k:'license1',    label:'缺氧作業主管證照' },
+  { k:'license2',    label:'急救人員證照' },
+];
+
+// ──────────────────────────────────────────
+// STATE
+// ──────────────────────────────────────────
+const S = {
+  dd: { contractor:[], project:[], dept:[], section:[] },
+  files: {}, // key → File[]
+  page: 1,
+};
+
+// ──────────────────────────────────────────
+// INIT
+// ──────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  buildUploadGrid();
+  loadDD();
+  setStepper(1);
+});
+
+// ──────────────────────────────────────────
+// DROPDOWN
+// ──────────────────────────────────────────
+async function loadDD() {
+  try {
+    // DEMO data — replace with: const d = await (await fetch(`${API}/dropdown`)).json();
+    const d = {
+      contractor:['台灣工程股份有限公司','南方承攬有限公司','北建工程行','高雄工務承攬'],
+      project:   ['高雄港區管線維護工程','台南化工廠改善工程','屏東水處理廠更新工程','橋頭廠區消防設備更換'],
+      dept:      ['工務部','安全環境部','機電部','土木工程部'],
+      section:   ['第一課','第二課','第三課','品管課','維護課'],
+    };
+    S.dd = d;
+    fillSel('selContractor', d.contractor, 'contractor');
+    fillSel('selProject',    d.project,    'project');
+    fillSel('selDept',       d.dept,       'dept');
+    fillSel('selSection',    d.section,    'section');
+    fillSel('qCo',  d.contractor, null);
+    fillSel('qPrj', d.project,    null);
+  } catch(e) {
+    toast('無法載入下拉選單，請確認 Worker 設定', 'err');
+  }
+}
+
+function fillSel(id, arr, type) {
+  const s = document.getElementById(id);
+  s.innerHTML = '<option value="">— 請選擇 —</option>';
+  arr.forEach(v => { const o = document.createElement('option'); o.value = o.textContent = v; s.appendChild(o); });
+  if (type) { const o = document.createElement('option'); o.value = '__m__'; o.textContent = '＋ 手動輸入…'; s.appendChild(o); }
+}
+
+const selMap = { contractor:'selContractor', project:'selProject', dept:'selDept', section:'selSection' };
+const mwMap  = { contractor:'mwContractor',  project:'mwProject',  dept:'mwDept',  section:'mwSection' };
+const miMap  = { contractor:'miContractor',  project:'miProject',  dept:'miDept',  section:'miSection' };
+
+function onSel(t) {
+  const v = document.getElementById(selMap[t]).value;
+  document.getElementById(mwMap[t]).classList.toggle('show', v === '__m__');
+}
+function closeMw(t) {
+  document.getElementById(mwMap[t]).classList.remove('show');
+  document.getElementById(selMap[t]).value = '';
+}
+function getVal(t) {
+  const sv = document.getElementById(selMap[t]).value;
+  if (sv === '__m__' || sv === '') return document.getElementById(miMap[t]).value.trim();
+  return sv;
+}
+
+// ──────────────────────────────────────────
+// UPLOAD GRID
+// ──────────────────────────────────────────
+function buildUploadGrid() {
+  document.getElementById('upGrid').innerHTML = ITEMS.map((item, i) => `
+    <div class="up-box" id="box_${item.k}">
+      <div class="up-lbl">
+        <span class="up-num" id="num_${item.k}">${i+1}</span>
+        ${item.label}
+        <span class="req-tag">必填</span>
+      </div>
+      <div class="up-zone" onclick="triggerFile('${item.k}')">
+        <input type="file" id="fi_${item.k}" multiple accept="image/*,application/pdf"
+               onchange="onFile('${item.k}',this.files)">
+        <div class="zi">📎</div>
+        <div class="zt">拖放或點選上傳</div>
+        <div class="za">圖片 / PDF（可多選）</div>
+      </div>
+      <div class="previews" id="pv_${item.k}"></div>
+    </div>
+  `).join('');
+
+  // Drag-drop
+  document.querySelectorAll('.up-zone').forEach(z => {
+    z.addEventListener('dragover', e => { e.preventDefault(); z.style.borderColor='var(--blue)'; });
+    z.addEventListener('dragleave', () => z.style.borderColor = '');
+    z.addEventListener('drop', e => {
+      e.preventDefault(); z.style.borderColor = '';
+      const k = z.closest('.up-box').id.replace('box_','');
+      onFile(k, e.dataTransfer.files);
+    });
+  });
+}
+
+function triggerFile(k) { document.getElementById(`fi_${k}`).click(); }
+
+function onFile(k, fileList) {
+  if (!S.files[k]) S.files[k] = [];
+  Array.from(fileList).forEach(f => S.files[k].push(f));
+  renderPreviews(k);
+  document.getElementById(`box_${k}`).classList.toggle('done', S.files[k].length > 0);
+  document.getElementById(`box_${k}`).classList.remove('err');
+}
+
+function renderPreviews(k) {
+  const files = S.files[k] || [];
+  document.getElementById(`pv_${k}`).innerHTML = files.map((f, i) => {
+    if (f.type.startsWith('image/')) {
+      return `<div class="prev-item">
+        <img src="${URL.createObjectURL(f)}" alt="${f.name}">
+        <button class="rm" onclick="rmFile('${k}',${i})">✕</button>
+      </div>`;
+    }
+    return `<div class="prev-item">
+      <div class="fi">📄<div class="fn">${f.name}</div></div>
+      <button class="rm" onclick="rmFile('${k}',${i})">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function rmFile(k, i) {
+  S.files[k].splice(i, 1);
+  renderPreviews(k);
+  document.getElementById(`box_${k}`).classList.toggle('done', S.files[k].length > 0);
+}
+
+// ──────────────────────────────────────────
+// NAVIGATION
+// ──────────────────────────────────────────
+function toPage2() {
+  const checks = [
+    [document.getElementById('fInspector').value.trim(), '請填寫檢驗員姓名'],
+    [document.getElementById('fStart').value, '請填寫開始時間'],
+    [document.getElementById('fEnd').value, '請填寫結束時間'],
+    [document.getElementById('fArea').value.trim(), '請填寫作業區域'],
+  ];
+  for (const [v, msg] of checks) { if (!v) { toast(msg, 'err'); return; } }
+  if (document.getElementById('fEnd').value <= document.getElementById('fStart').value) {
+    toast('結束時間必須晚於開始時間', 'err'); return;
+  }
+  show('pg2'); hide('pg1'); setStepper(2);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function toPage1() {
+  show('pg1'); hide('pg2'); setStepper(1);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function setStepper(p) {
+  S.page = p;
+  [[1,'st1','sd1','sl1'],[2,'st2','sd2','sl2'],[3,'st3','sd3','sl2']].forEach(([n,si,di]) => {
+    const s = document.getElementById(si);
+    const d = document.getElementById(di);
+    s.className = 'st' + (n < p ? ' ok' : n === p ? ' on' : '');
+    d.textContent = n < p ? '✓' : String(n);
+  });
+  document.getElementById('sl1').className = 'st-line' + (p > 1 ? ' ok' : '');
+  document.getElementById('sl2').className = 'st-line' + (p > 2 ? ' ok' : '');
+}
+
+// ──────────────────────────────────────────
+// SUBMIT — 生成 PDF → 上傳 Drive → 寫入 Sheets
+// ──────────────────────────────────────────
+async function submitAll() {
+  // Validate uploads
+  const missing = ITEMS.filter(item => !S.files[item.k] || S.files[item.k].length === 0);
+  if (missing.length > 0) {
+    ITEMS.forEach(item => {
+      if (!S.files[item.k] || S.files[item.k].length === 0) {
+        document.getElementById(`box_${item.k}`).classList.add('err');
+      }
+    });
+    toast(`尚有 ${missing.length} 項未上傳（${missing[0].label}…）`, 'err');
+    document.getElementById(`box_${missing[0].k}`).scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
+
+  const fields = {
+    contractor: getVal('contractor'),
+    project:    getVal('project'),
+    dept:       getVal('dept'),
+    section:    getVal('section'),
+    inspector:  document.getElementById('fInspector').value.trim(),
+    startTime:  document.getElementById('fStart').value,
+    endTime:    document.getElementById('fEnd').value,
+    workArea:   document.getElementById('fArea').value.trim(),
+    workDetail: document.getElementById('fDetail').value.trim(),
+  };
+
+  showOv('處理中…', '正在準備資料', [
+    { id:'s1', label:'讀取並壓縮照片' },
+    { id:'s2', label:'生成 PDF 報告' },
+    { id:'s3', label:'上傳至 Google Drive' },
+    { id:'s4', label:'寫入 Google Sheets 記錄' },
+  ]);
+
+  try {
+    // Step 1: Convert images to base64
+    ovStep('s1', 'active');
+    const imageData = {};
+    for (const item of ITEMS) {
+      imageData[item.k] = await Promise.all(
+        S.files[item.k].map(f => fileToBase64(f))
+      );
+    }
+    ovStep('s1', 'done');
+
+    // Step 2: Generate PDF client-side
+    ovStep('s2', 'active');
+    const pdfBase64 = await generatePDF(fields, imageData);
+    ovStep('s2', 'done');
+
+    // Step 3 & 4: Send to Worker (uploads to Drive + logs to Sheets)
+    ovStep('s3', 'active');
+
+    /* REAL implementation:
+    const res = await fetch(`${API}/submit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fields, pdfBase64 })
+    });
+    const { pdfUrl } = await res.json();
+    */
+    await delay(1200); // simulate
+    ovStep('s3', 'done');
+    ovStep('s4', 'active');
+    await delay(600); // simulate
+    ovStep('s4', 'done');
+
+    // Update dropdown if manual entries
+    for (const t of ['contractor','project','dept','section']) {
+      const v = fields[t];
+      const list = S.dd[t];
+      if (v && list && !list.includes(v)) {
+        list.push(v);
+        /* REAL: await fetch(`${API}/dropdown/add`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({type:t,value:v}) }); */
+      }
+    }
+
+    const pdfUrl = 'https://drive.google.com/file/d/DEMO_ID/view'; // from worker response
+
+    hideOv();
+    showDone(pdfUrl);
+    toast('通報資料已成功送出！', 'ok');
+
+  } catch(err) {
+    hideOv();
+    toast('送出失敗：' + err.message, 'err');
+  }
+}
+
+// ──────────────────────────────────────────
+// PDF GENERATION (client-side, jsPDF)
+// ──────────────────────────────────────────
+async function generatePDF(fields, imageData) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+  const W = 210, H = 297;
+  const M = 15; // margin
+  let y = M;
+
+  // Helper functions
+  const addPage = () => { doc.addPage(); y = M; };
+  const checkY  = (need) => { if (y + need > H - M) addPage(); };
+
+  // ─ Cover / Header ─
+  doc.setFillColor(41, 82, 200);
+  doc.rect(0, 0, W, 38, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(16); doc.setFont('helvetica','bold');
+  doc.text('局限空間作業通報書', W/2, 16, {align:'center'});
+  doc.setFontSize(9); doc.setFont('helvetica','normal');
+  doc.text('Confined Space Work Notification Report', W/2, 23, {align:'center'});
+  doc.setFontSize(8);
+  doc.text(`產生時間：${new Date().toLocaleString('zh-TW')}`, W/2, 30, {align:'center'});
+
+  y = 46;
+
+  // ─ Field Table ─
+  const fieldRows = [
+    ['承攬商公司', fields.contractor || '—'],
+    ['工程名稱',   fields.project    || '—'],
+    ['主辦部門',   fields.dept       || '—'],
+    ['主辦課別',   fields.section    || '—'],
+    ['檢驗員姓名', fields.inspector],
+    ['開始時間',   fields.startTime],
+    ['結束時間',   fields.endTime],
+    ['作業區域',   fields.workArea],
+    ['詳細位置',   fields.workDetail || '—'],
+  ];
+
+  doc.setFontSize(9); doc.setTextColor(30,30,30);
+  fieldRows.forEach(([lbl, val], i) => {
+    checkY(10);
+    const bg = i % 2 === 0 ? [247,248,252] : [255,255,255];
+    doc.setFillColor(...bg);
+    doc.rect(M, y-5, W-M*2, 9, 'F');
+    doc.setFont('helvetica','bold'); doc.setTextColor(80,100,140);
+    doc.text(lbl, M+2, y);
+    doc.setFont('helvetica','normal'); doc.setTextColor(30,30,30);
+    doc.text(String(val), M+42, y);
+    y += 9;
+  });
+
+  y += 6;
+
+  // ─ Photos section ─
+  for (const item of ITEMS) {
+    const imgs = imageData[item.k] || [];
+    if (imgs.length === 0) continue;
+
+    checkY(18);
+    // Section header
+    doc.setFillColor(41, 82, 200);
+    doc.rect(M, y-4, W-M*2, 8, 'F');
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(8.5); doc.setFont('helvetica','bold');
+    doc.text(item.label, M+3, y+0.5);
+    y += 10;
+
+    // Lay out images (2 per row)
+    const imgW = (W - M*2 - 5) / 2;
+    const imgH = imgW * 0.65;
+    let col = 0;
+    for (const { dataUrl, type } of imgs) {
+      if (type.startsWith('image/')) {
+        checkY(imgH + 4);
+        const x = M + col * (imgW + 5);
+        try {
+          const fmt = type.includes('png') ? 'PNG' : 'JPEG';
+          doc.addImage(dataUrl, fmt, x, y, imgW, imgH);
+        } catch(e) { /* skip unreadable image */ }
+        col++;
+        if (col >= 2) { col = 0; y += imgH + 4; }
+      } else {
+        // PDF file — show placeholder
+        checkY(16);
+        doc.setFillColor(238,242,252);
+        doc.rect(M, y, W-M*2, 14, 'F');
+        doc.setTextColor(41,82,200); doc.setFontSize(8);
+        doc.text('📄 PDF 文件已附件（請見原始檔案）', M+4, y+8);
+        y += 18;
+      }
+    }
+    if (col > 0) y += imgH + 4; // close last row
+    y += 4;
+  }
+
+  // ─ Footer on each page ─
+  const total = doc.internal.getNumberOfPages();
+  for (let p = 1; p <= total; p++) {
+    doc.setPage(p);
+    doc.setFontSize(7.5); doc.setTextColor(160,160,160);
+    doc.setFont('helvetica','normal');
+    doc.text(`${fields.project || ''} — 局限作業通報`, M, H-8);
+    doc.text(`第 ${p} 頁 / 共 ${total} 頁`, W-M, H-8, {align:'right'});
+    doc.setDrawColor(220,220,220);
+    doc.line(M, H-11, W-M, H-11);
+  }
+
+  return doc.output('datauristring').split(',')[1]; // return base64
+}
+
+// ──────────────────────────────────────────
+// FILE UTILS
+// ──────────────────────────────────────────
+function fileToBase64(file) {
+  return new Promise((res, rej) => {
+    const reader = new FileReader();
+    reader.onload  = e => res({ dataUrl: e.target.result, type: file.type, name: file.name });
+    reader.onerror = rej;
+    reader.readAsDataURL(file);
+  });
+}
+
+// ──────────────────────────────────────────
+// QUERY
+// ──────────────────────────────────────────
+async function doQuery() {
+  const co   = document.getElementById('qCo').value;
+  const prj  = document.getElementById('qPrj').value;
+  const insp = document.getElementById('qInsp').value.trim();
+  const dt   = document.getElementById('qDate').value;
+
+  showOv('查詢中…', '正在從 Google Sheets 取得記錄', []);
+
+  try {
+    // REAL: const params = new URLSearchParams({company:co,project:prj,inspector:insp,date:dt});
+    //       const rows = await (await fetch(`${API}/query?${params}`)).json();
+    await delay(700);
+    const rows = demoQuery(co, prj, insp, dt);
+    hideOv();
+    renderResults(rows);
+  } catch(e) {
+    hideOv();
+    toast('查詢失敗：' + e.message, 'err');
+  }
+}
+
+function demoQuery(co, prj, insp, dt) {
+  const all = [
+    { company:'台灣工程股份有限公司', project:'高雄港區管線維護工程', dept:'工務部',    section:'第一課', inspector:'林志明', startTime:'2025-04-01 08:00', endTime:'2025-04-01 17:00', workArea:'A棟B1', pdfUrl:'https://drive.google.com/file/d/DEMO1/view' },
+    { company:'南方承攬有限公司',     project:'台南化工廠改善工程',   dept:'安全環境部', section:'品管課', inspector:'陳美玲', startTime:'2025-04-03 09:30', endTime:'2025-04-03 16:00', workArea:'C棟管道', pdfUrl:'https://drive.google.com/file/d/DEMO2/view' },
+    { company:'台灣工程股份有限公司', project:'屏東水處理廠更新工程', dept:'機電部',    section:'第二課', inspector:'王大明', startTime:'2025-04-07 07:00', endTime:'2025-04-07 15:30', workArea:'泵浦室', pdfUrl:'https://drive.google.com/file/d/DEMO3/view' },
+    { company:'北建工程行',          project:'橋頭廠區消防設備更換', dept:'工務部',    section:'維護課', inspector:'張雅婷', startTime:'2025-04-08 08:30', endTime:'2025-04-08 16:00', workArea:'機房', pdfUrl:'https://drive.google.com/file/d/DEMO4/view' },
+  ];
+  const now = new Date(), ago = new Date(now); ago.setMonth(ago.getMonth()-1);
+  return all.filter(r => {
+    const rd = new Date(r.startTime);
+    if (co && !dt && !prj) return r.company === co && rd >= ago;
+    if (dt && !co) return r.startTime.startsWith(dt);
+    if (co && dt) return r.company === co && r.startTime.startsWith(dt);
+    return (!co || r.company === co) && (!prj || r.project === prj) && (!insp || r.inspector.includes(insp)) && (!dt || r.startTime.startsWith(dt));
+  });
+}
+
+function renderResults(rows) {
+  const el = document.getElementById('qResults');
+  if (!rows.length) {
+    el.innerHTML = '<div class="empty"><div class="ei">📭</div><p>查無符合條件的通報記錄</p></div>';
+    return;
+  }
+  el.innerHTML = `
+    <table>
+      <thead><tr>
+        <th>公司名稱</th><th>工程名稱</th><th>部門 / 課別</th>
+        <th>檢驗員</th><th>作業地點</th>
+        <th>開始時間</th><th>結束時間</th><th>PDF 報告</th>
+      </tr></thead>
+      <tbody>${rows.map(r=>`<tr>
+        <td>${r.company}</td>
+        <td>${r.project}</td>
+        <td>${r.dept} / ${r.section}</td>
+        <td>${r.inspector}</td>
+        <td>${r.workArea}</td>
+        <td class="mono">${r.startTime}</td>
+        <td class="mono">${r.endTime}</td>
+        <td><a class="pdf-btn" href="${r.pdfUrl}" target="_blank">📄 開啟</a></td>
+      </tr>`).join('')}</tbody>
+    </table>
+    <div style="padding:9px 16px;font-size:.72rem;color:var(--text-3);border-top:1px solid var(--border)">共 ${rows.length} 筆記錄</div>
+  `;
+}
+
+function clearQ() {
+  ['qCo','qPrj'].forEach(id => document.getElementById(id).selectedIndex = 0);
+  document.getElementById('qInsp').value = '';
+  document.getElementById('qDate').value = '';
+  document.getElementById('qResults').innerHTML = '<div class="empty"><div class="ei">🔍</div><p>請設定查詢條件後按下查詢</p></div>';
+}
+
+// ──────────────────────────────────────────
+// DONE PAGE
+// ──────────────────────────────────────────
+function showDone(pdfUrl) {
+  hide('pg2'); show('pg3'); setStepper(3);
+  document.getElementById('donePdfArea').innerHTML = pdfUrl
+    ? `<a class="pdf-btn" href="${pdfUrl}" target="_blank" style="font-size:.88rem;padding:10px 18px">📄 開啟已生成的 PDF 報告</a>`
+    : '';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function resetAll() {
+  document.querySelectorAll('.inp').forEach(el => { if(el.tagName==='SELECT') el.selectedIndex=0; else el.value=''; });
+  document.querySelectorAll('.manual-wrap').forEach(el => el.classList.remove('show'));
+  S.files = {};
+  ITEMS.forEach(item => {
+    document.getElementById(`box_${item.k}`).className = 'up-box';
+    document.getElementById(`pv_${item.k}`).innerHTML = '';
+  });
+  hide('pg3'); show('pg1'); setStepper(1);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ──────────────────────────────────────────
+// VIEW SWITCH
+// ──────────────────────────────────────────
+function switchView(v) {
+  document.getElementById('formView').classList.toggle('hidden', v!=='form');
+  document.getElementById('queryView').classList.toggle('hidden', v!=='query');
+  document.getElementById('navForm').classList.toggle('on', v==='form');
+  document.getElementById('navQuery').classList.toggle('on', v==='query');
+  if (v==='query') { fillSel('qCo', S.dd.contractor, null); fillSel('qPrj', S.dd.project, null); }
+}
+
+// ──────────────────────────────────────────
+// OVERLAY
+// ──────────────────────────────────────────
+function showOv(title, sub, steps) {
+  document.getElementById('ovTitle').textContent = title;
+  document.getElementById('ovSub').textContent   = sub;
+  document.getElementById('ovSteps').innerHTML   = steps.map(s =>
+    `<div class="ov-step-item" id="${s.id}"><div class="ov-step-dot"></div>${s.label}</div>`
+  ).join('');
+  document.getElementById('overlay').classList.add('on');
+}
+function ovStep(id, state) {
+  const el = document.getElementById(id);
+  if (el) { el.className = `ov-step-item ${state}`; if(state==='done') el.children[0].style.content=''; }
+}
+function hideOv() { document.getElementById('overlay').classList.remove('on'); }
+
+// ──────────────────────────────────────────
+// TOAST
+// ──────────────────────────────────────────
+function toast(msg, type='') {
+  const c = document.getElementById('toasts');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  const ic = {ok:'✓',err:'✕',warn:'⚠'}[type] || 'ℹ';
+  t.innerHTML = `<span>${ic}</span>${msg}`;
+  c.appendChild(t);
+  setTimeout(()=>{ t.style.cssText='opacity:0;transition:opacity .4s'; setTimeout(()=>t.remove(),400); }, 3800);
+}
+
+// ──────────────────────────────────────────
+// UTILS
+// ──────────────────────────────────────────
+const show = id => document.getElementById(id).classList.remove('hidden');
+const hide = id => document.getElementById(id).classList.add('hidden');
+const delay = ms => new Promise(r => setTimeout(r, ms));
+</script>
+</body>
+</html>
