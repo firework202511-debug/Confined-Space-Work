@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>局限作業通報系統</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
 :root {
   --bg:#f5f6f8; --surface:#fff; --surface-2:#f0f2f6; --surface-3:#e8ebf0;
@@ -146,8 +146,8 @@ th{padding:9px 14px;text-align:left;font-size:.72rem;font-weight:700;color:var(-
 td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:var(--surface-2)}
-.pdf-btn{display:inline-flex;align-items:center;gap:4px;color:var(--blue);text-decoration:none;font-weight:600;padding:4px 9px;border-radius:var(--r-sm);background:var(--blue-lt);font-size:.76rem;transition:all .15s}
-.pdf-btn:hover{background:var(--blue);color:#fff}
+.-btn{display:inline-flex;align-items:center;gap:4px;color:var(--blue);text-decoration:none;font-weight:600;padding:4px 9px;border-radius:var(--r-sm);background:var(--blue-lt);font-size:.76rem;transition:all .15s}
+.-btn:hover{background:var(--blue);color:#fff}
 .empty{text-align:center;padding:48px 24px;color:var(--text-3)}
 .empty .ei{font-size:2.2rem;margin-bottom:10px}
 
@@ -352,7 +352,7 @@ tr:hover td{background:var(--surface-2)}
         </div>
         <div>
           <h2>文件 & 照片上傳</h2>
-          <p>所有 10 項皆必填 — 完成後點「生成 PDF」預覽，再點「上傳至 Google Drive」送出</p>
+          <p>所有 10 項皆必填 — 完成後點「生成 」預覽，再點「上傳至 Google Drive」送出</p>
         </div>
       </div>
       <div class="card-bd">
@@ -363,10 +363,10 @@ tr:hover td{background:var(--surface-2)}
             <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
             返回
           </button>
-          <!-- Step A: 生成 PDF（本地預覽+下載） -->
-          <button class="btn btn-primary" id="btnGenPdf" onclick="generateAndPreview()">
+          <!-- Step A: 生成 （本地預覽+下載） -->
+          <button class="btn btn-primary" id="btnGen" onclick="generateAndPreview()">
             <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            生成 PDF 預覽
+            生成  預覽
           </button>
           <!-- Step B: 上傳至 Drive（生成後才出現） -->
           <button class="btn btn-success hidden" id="btnUpload" onclick="uploadToCloud()">
@@ -375,16 +375,16 @@ tr:hover td{background:var(--surface-2)}
           </button>
         </div>
 
-        <!-- PDF 預覽區（生成後顯示） -->
-        <div id="pdfPreviewArea" class="hidden" style="margin-top:18px;padding:16px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r)">
+        <!--  預覽區（生成後顯示） -->
+        <div id="PreviewArea" class="hidden" style="margin-top:18px;padding:16px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r)">
           <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
             <div>
-              <div style="font-size:.85rem;font-weight:600;color:var(--green)">✅ PDF 已生成，請確認後上傳</div>
-              <div style="font-size:.76rem;color:var(--text-2);margin-top:3px" id="pdfFilename"></div>
+              <div style="font-size:.85rem;font-weight:600;color:var(--green)">✅  已生成，請確認後上傳</div>
+              <div style="font-size:.76rem;color:var(--text-2);margin-top:3px" id="Filename"></div>
             </div>
-            <button class="btn btn-download" onclick="downloadPdf()">
+            <button class="btn btn-download" onclick="download()">
               <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-              下載 PDF
+              下載 
             </button>
           </div>
         </div>
@@ -398,12 +398,12 @@ tr:hover td{background:var(--surface-2)}
       <div class="done-wrap">
         <div class="done-icon">✅</div>
         <div class="done-title">通報資料上傳成功</div>
-        <div class="done-sub">PDF 已儲存至 Google Drive，記錄已寫入 Google Sheets</div>
-        <div id="donePdfArea" style="margin-bottom:20px"></div>
+        <div class="done-sub"> 已儲存至 Google Drive，記錄已寫入 Google Sheets</div>
+        <div id="doneArea" style="margin-bottom:20px"></div>
         <div class="done-actions">
-          <button class="btn btn-download" id="btnDoneDownload" onclick="downloadPdf()">
+          <button class="btn btn-download" id="btnDoneDownload" onclick="download()">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-            下載 PDF
+            下載 
           </button>
           <button class="btn btn-primary" onclick="resetAll()">新增下一筆通報</button>
           <button class="btn btn-ghost" onclick="switchView('query')">查詢所有記錄</button>
@@ -485,8 +485,8 @@ const S = {
   dd: [],          // DROPDOWNDATA 完整資料
   files: {},       // 上傳檔案
   isManual: false,
-  pdfBase64: null, // 生成的 PDF base64
-  pdfFilename: '',
+  Base64: null, // 生成的  base64
+  Filename: '',
 };
 
 // ════════════════════════════════════════════════
@@ -614,11 +614,11 @@ function buildUploadGrid() {
         <span class="req-tag">必填</span>
       </div>
       <div class="up-zone" onclick="triggerFile('${item.k}')">
-        <input type="file" id="fi_${item.k}" multiple accept="image/*,application/pdf"
+        <input type="file" id="fi_${item.k}" multiple accept="image/*,application/"
                onchange="onFile('${item.k}',this.files)">
         <div class="zi">📎</div>
         <div class="zt">拖放或點選上傳</div>
-        <div class="za">圖片 / PDF（可多選）</div>
+        <div class="za">圖片 / （可多選）</div>
       </div>
       <div class="previews" id="pv_${item.k}"></div>
     </div>
@@ -643,12 +643,12 @@ function onFile(k, fl) {
   renderPreviews(k);
   document.getElementById(`box_${k}`).classList.toggle('done', S.files[k].length > 0);
   document.getElementById(`box_${k}`).classList.remove('err');
-  // 如果已生成 PDF，需重新生成
-  if (S.pdfBase64) {
-    S.pdfBase64 = null;
-    document.getElementById('pdfPreviewArea').classList.add('hidden');
+  // 如果已生成 ，需重新生成
+  if (S.Base64) {
+    S.Base64 = null;
+    document.getElementById('PreviewArea').classList.add('hidden');
     document.getElementById('btnUpload').classList.add('hidden');
-    document.getElementById('btnGenPdf').classList.remove('hidden');
+    document.getElementById('btnGen').classList.remove('hidden');
   }
 }
 
@@ -718,7 +718,7 @@ function toPage1() {
 }
 
 // ════════════════════════════════════════════════
-// Step A：生成 PDF（本地，可下載預覽）
+// Step A：生成 （本地，可下載預覽）
 // ════════════════════════════════════════════════
 async function generateAndPreview() {
   // 驗證所有上傳項目
@@ -895,147 +895,80 @@ function clearQ() {
 }
 
 // ════════════════════════════════════════════════
-// 載入中文字體至 jsPDF
-// ════════════════════════════════════════════════
-// ════════════════════════════════════════════════
-// 載入中文字體至 jsPDF
-// ════════════════════════════════════════════════
-async function loadChineseFont(doc) {
-  // 改用相容性極高的 Noto Sans TC (思源黑體) TTF 版本
-  const fontUrl = 'https://cdn.jsdelivr.net/npm/@electron-fonts/noto-sans-tc@1.2.0/fonts/NotoSansTC-Regular.ttf';
-  
-  const response = await fetch(fontUrl);
-  const blob = await response.blob();
-
-  // 將 TTF 檔案轉為 Base64 字串
-  const base64Font = await new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result.split(',')[1]);
-    reader.readAsDataURL(blob);
-  });
-
-  // 註冊至 jsPDF 的虛擬檔案系統 (VFS)
-  doc.addFileToVFS('NotoSansTC.ttf', base64Font);
-  doc.addFont('NotoSansTC.ttf', 'NotoSansTC', 'normal');
-  doc.addFont('NotoSansTC.ttf', 'NotoSansTC', 'bold'); 
-}
-  
-// ════════════════════════════════════════════════
-// PDF 生成（jsPDF）
+// PDF 生成（HTML 排版轉 PDF）
 // ════════════════════════════════════════════════
 async function buildPDF(fields, imageData) {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+  // 1. 建立一個隱藏的容器來放置 HTML 排版
+  const container = document.createElement('div');
+  container.style.padding = '10px 20px';
+  container.style.fontFamily = "'Noto Sans TC', sans-serif";
+  container.style.color = '#141820';
 
-  // 載入字體
-  await loadChineseFont(doc);
+  // --- 封面與基本資料表格 ---
+  let html = `
+    <div style="text-align: center; margin-bottom: 20px;">
+      <h1 style="background: #2952c8; color: #fff; padding: 12px; margin: 0; font-size: 24px; border-radius: 6px; letter-spacing: 2px;">局限空間作業通報書</h1>
+      <p style="margin-top: 8px; color: #666; font-size: 14px;">產生時間：${new Date().toLocaleString('zh-TW')}</p>
+    </div>
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; font-size: 14px;">
+      <tbody>
+        <tr><th style="width: 25%; background: #f0f2f6; border: 1px solid #dde1ea; padding: 10px; text-align: left;">承攬商公司</th><td style="border: 1px solid #dde1ea; padding: 10px; font-weight: bold;">${fields.company || '—'}</td></tr>
+        <tr><th style="background: #f0f2f6; border: 1px solid #dde1ea; padding: 10px; text-align: left;">工程名稱</th><td style="border: 1px solid #dde1ea; padding: 10px;">${fields.project || '—'}</td></tr>
+        <tr><th style="background: #f0f2f6; border: 1px solid #dde1ea; padding: 10px; text-align: left;">主辦部門 / 課別</th><td style="border: 1px solid #dde1ea; padding: 10px;">${fields.dept || '—'} / ${fields.section || '—'}</td></tr>
+        <tr><th style="background: #f0f2f6; border: 1px solid #dde1ea; padding: 10px; text-align: left;">檢驗員</th><td style="border: 1px solid #dde1ea; padding: 10px;">${fields.inspector || '—'}</td></tr>
+        <tr><th style="background: #f0f2f6; border: 1px solid #dde1ea; padding: 10px; text-align: left;">作業時間</th><td style="border: 1px solid #dde1ea; padding: 10px;">${fields.startTime.replace('T', ' ')} 至 ${fields.endTime.replace('T', ' ')}</td></tr>
+        <tr><th style="background: #f0f2f6; border: 1px solid #dde1ea; padding: 10px; text-align: left;">作業區域</th><td style="border: 1px solid #dde1ea; padding: 10px;">${fields.workArea || '—'}</td></tr>
+        <tr><th style="background: #f0f2f6; border: 1px solid #dde1ea; padding: 10px; text-align: left;">詳細位置</th><td style="border: 1px solid #dde1ea; padding: 10px;">${fields.workDetail || '—'}</td></tr>
+      </tbody>
+    </table>
+  `;
 
-  const W=210, H=297, M=15;
-  let y = M;
-  
-  const checkY = need => { 
-    if (y+need > H-M) { 
-      doc.addPage();
-      doc.setFont('NotoSansTC','normal'); 
-      y=M; 
-    } 
+  // --- 照片與附件區塊 ---
+  for (const item of ITEMS) {
+    const imgs = (imageData[item.k] || []).filter(d => d.type.startsWith('image/'));
+    const pdfs = (imageData[item.k] || []).filter(d => !d.type.startsWith('image/'));
+    if (imgs.length === 0 && pdfs.length === 0) continue;
+
+    // page-break-inside: avoid 確保照片區塊不會被不自然切斷
+    html += `
+      <div style="page-break-inside: avoid; margin-bottom: 20px;">
+        <h3 style="background: #2952c8; color: white; padding: 8px 12px; margin: 0 0 10px 0; font-size: 16px; border-radius: 4px;">${item.label}</h3>
+    `;
+
+    // 渲染照片 (同您提供的 img-container 邏輯)
+    if (imgs.length > 0) {
+      html += `<div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">`;
+      for (const img of imgs) {
+        html += `<img src="${img.dataUrl}" style="height: 220px; max-width: 48%; object-fit: contain; border: 1px solid #ccc; border-radius: 4px; padding: 4px;" />`;
+      }
+      html += `</div>`;
+    }
+
+    // 渲染 PDF 附件文字標示
+    if (pdfs.length > 0) {
+      for (const pdf of pdfs) {
+        html += `<div style="background: #eef2fc; color: #2952c8; padding: 8px 12px; margin-bottom: 6px; border-radius: 4px; font-size: 14px; font-weight: bold;">📄 附加檔案（已與本單一併上傳）：${pdf.name}</div>`;
+      }
+    }
+    html += `</div>`;
+  }
+
+  container.innerHTML = html;
+
+  // 2. 設定 html2pdf 選項
+  const opt = {
+    margin:       10, // 邊距設定
+    filename:     'report.pdf',
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2, useCORS: true }, // scale: 2 可以確保畫面清晰
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
 
-  // ── 封面標題 ──
-  doc.setFillColor(41,82,200); doc.rect(0,0,W,38,'F');
-  doc.setTextColor(255,255,255);
+  // 3. 呼叫 html2pdf 轉換並直接取得 Base64 字串供上傳 Drive 使用
+  const dataUri = await html2pdf().set(opt).from(container).outputPdf('datauristring');
   
-  // 改為全繁體中文標題
-  doc.setFontSize(16);
-  doc.setFont('NotoSansTC','bold');
-  doc.text('局限空間作業通報書', W/2, 18, {align:'center'});
-  
-  doc.setFontSize(9);
-  doc.setFont('NotoSansTC','normal');
-  doc.text(`產生時間：${new Date().toLocaleString('zh-TW')}`, W/2, 28, {align:'center'});
-  y = 46;
-
-  // ── 基本資料表 ──
-  const rows = [
-    ['公司', fields.company||'—'],
-    ['工程名稱', fields.project||'—'],
-    ['主辦部門', fields.dept||'—'],
-    ['主辦課別', fields.section||'—'],
-    ['檢驗員', fields.inspector||'—'],
-    ['開始時間', fields.startTime||'—'],
-    ['結束時間', fields.endTime||'—'],
-    ['作業區域', fields.workArea||'—'],
-    ['詳細位置', fields.workDetail||'—'],
-  ];
-
-  doc.setFontSize(9);
-  rows.forEach(([lbl,val],i) => {
-    checkY(10);
-    doc.setFillColor(...(i%2===0?[247,248,252]:[255,255,255]));
-    doc.rect(M,y-5,W-M*2,9,'F');
-    
-    // 套用 NotoSansTC
-    doc.setFont('NotoSansTC','bold'); 
-    doc.setTextColor(80,100,140);
-    doc.text(lbl, M+2, y);
-    
-    doc.setFont('NotoSansTC','normal'); 
-    doc.setTextColor(20,20,20);
-    doc.text(String(val), M+55, y);
-    y += 9;
-  });
-
-  // ── 各項目照片 ──
-  for (const item of ITEMS) {
-    const imgs = (imageData[item.k]||[]).filter(d=>d.type.startsWith('image/'));
-    const pdfs = (imageData[item.k]||[]).filter(d=>!d.type.startsWith('image/'));
-    if (!imageData[item.k]?.length) continue;
-
-    checkY(16);
-    doc.setFillColor(41,82,200); doc.rect(M,y-4,W-M*2,8,'F');
-    doc.setTextColor(255,255,255); doc.setFontSize(8.5); 
-    
-    // 解決相片標題亂碼：確實套用中文字型
-    doc.setFont('NotoSansTC','bold');
-    doc.text(item.label, M+3, y+0.5);
-    y += 10;
-
-    const imgW = (W-M*2-5)/2, imgH = imgW*0.65;
-    let col = 0;
-    for (const d of imgs) {
-      checkY(imgH+4);
-      try {
-        doc.addImage(d.dataUrl, d.type.includes('png')?'PNG':'JPEG', M+col*(imgW+5), y, imgW, imgH);
-      } catch(e) {}
-      col++;
-      if (col>=2) { col=0; y+=imgH+4; }
-    }
-    if (col>0) y+=imgH+4;
-
-    for (const d of pdfs) {
-      checkY(14);
-      doc.setFillColor(238,242,252); doc.rect(M,y,W-M*2,12,'F');
-      doc.setTextColor(41,82,200); doc.setFontSize(8); doc.setFont('NotoSansTC','normal');
-      // 將附件前綴改成中文
-      doc.text(`PDF 附件：${d.name}`, M+4, y+7);
-      y += 15;
-    }
-    y += 4;
-  }
-
-  // ── 頁碼頁尾 ──
-  const total = doc.internal.getNumberOfPages();
-  for (let p=1;p<=total;p++) {
-    doc.setPage(p);
-    doc.setFontSize(7.5);
-    doc.setTextColor(160,160,160); doc.setFont('NotoSansTC','normal');
-    doc.text(fields.project||'', M, H-8);
-    // 將頁尾頁碼改成中文
-    doc.text(`第 ${p} 頁 / 共 ${total} 頁`, W-M, H-8, {align:'right'});
-    doc.setDrawColor(220,220,220); doc.line(M,H-11,W-M,H-11);
-  }
-
-  return doc.output('datauristring').split(',')[1];
+  // 回傳逗號後方的純 Base64 字串
+  return dataUri.split(',')[1];
 }
 // ════════════════════════════════════════════════
 // 工具函式
