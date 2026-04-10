@@ -352,7 +352,7 @@ tr:hover td{background:var(--surface-2)}
         </div>
         <div>
           <h2>文件 & 照片上傳</h2>
-          <p>所有 10 項皆必填 — 完成後點「生成 」預覽，再點「上傳至 Google Drive」送出</p>
+          <p>所有 10 項皆必填 — 完成後點「生成 PDF」預覽，再點「上傳至 Google Drive」送出</p>
         </div>
       </div>
       <div class="card-bd">
@@ -363,56 +363,48 @@ tr:hover td{background:var(--surface-2)}
             <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
             返回
           </button>
-          <!-- Step A: 生成 （本地預覽+下載） -->
-          <button class="btn btn-primary" id="btnGen" onclick="generateAndPreview()">
+          <button class="btn btn-primary" id="btnGenPdf" onclick="generateAndPreview()">
             <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            生成  預覽
+            生成 PDF 預覽
           </button>
-          <!-- Step B: 上傳至 Drive（生成後才出現） -->
           <button class="btn btn-success hidden" id="btnUpload" onclick="uploadToCloud()">
             <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
             上傳至 Google Drive
           </button>
         </div>
 
-        <!--  預覽區（生成後顯示） -->
-        <div id="PreviewArea" class="hidden" style="margin-top:18px;padding:16px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r)">
+        <div id="pdfPreviewArea" class="hidden" style="margin-top:18px;padding:16px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r)">
           <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
             <div>
-              <div style="font-size:.85rem;font-weight:600;color:var(--green)">✅  已生成，請確認後上傳</div>
-              <div style="font-size:.76rem;color:var(--text-2);margin-top:3px" id="Filename"></div>
+              <div style="font-size:.85rem;font-weight:600;color:var(--green)">✅ PDF 已生成，請確認後上傳</div>
+              <div style="font-size:.76rem;color:var(--text-2);margin-top:3px" id="pdfFilename"></div>
             </div>
-            <button class="btn btn-download" onclick="download()">
+            <button class="btn btn-download" onclick="downloadPdf()">
               <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-              下載 
+              下載 PDF
             </button>
           </div>
         </div>
       </div>
     </div>
-  </div><!-- /pg2 -->
-
-  <!-- Page 3：完成 -->
-  <div id="pg3" class="hidden">
+  </div><div id="pg3" class="hidden">
     <div class="card">
       <div class="done-wrap">
         <div class="done-icon">✅</div>
         <div class="done-title">通報資料上傳成功</div>
-        <div class="done-sub"> 已儲存至 Google Drive，記錄已寫入 Google Sheets</div>
-        <div id="doneArea" style="margin-bottom:20px"></div>
+        <div class="done-sub">PDF 已儲存至 Google Drive，記錄已寫入 Google Sheets</div>
+        <div id="donePdfArea" style="margin-bottom:20px"></div>
         <div class="done-actions">
-          <button class="btn btn-download" id="btnDoneDownload" onclick="download()">
+          <button class="btn btn-download" id="btnDoneDownload" onclick="downloadPdf()">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-            下載 
+            下載 PDF
           </button>
           <button class="btn btn-primary" onclick="resetAll()">新增下一筆通報</button>
           <button class="btn btn-ghost" onclick="switchView('query')">查詢所有記錄</button>
         </div>
       </div>
     </div>
-  </div><!-- /pg3 -->
-
-</div><!-- /formView -->
+  </div>```
 
 <!-- ══════ QUERY VIEW ══════ -->
 <div id="queryView" class="hidden">
