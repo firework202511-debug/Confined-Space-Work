@@ -897,9 +897,12 @@ function clearQ() {
 // ════════════════════════════════════════════════
 // 載入中文字體至 jsPDF
 // ════════════════════════════════════════════════
+// ════════════════════════════════════════════════
+// 載入中文字體至 jsPDF
+// ════════════════════════════════════════════════
 async function loadChineseFont(doc) {
-  // 使用開源的 cwTeX 黑體 (繁體中文)，檔案較小適合網頁動態載入
-  const fontUrl = 'https://cdn.jsdelivr.net/npm/cwtex-q-fonts@1.0.0/fonts/cwTeXQHei-zhonly.ttf';
+  // 改用相容性極高的 Noto Sans TC (思源黑體) TTF 版本
+  const fontUrl = 'https://cdn.jsdelivr.net/npm/@electron-fonts/noto-sans-tc@1.2.0/fonts/NotoSansTC-Regular.ttf';
   
   const response = await fetch(fontUrl);
   const blob = await response.blob();
@@ -912,11 +915,9 @@ async function loadChineseFont(doc) {
   });
 
   // 註冊至 jsPDF 的虛擬檔案系統 (VFS)
-  doc.addFileToVFS('cwTeXQHei.ttf', base64Font);
-  
-  // 設定 normal 和 bold 都對應到這個字體，避免呼叫 bold 時出錯
-  doc.addFont('cwTeXQHei.ttf', 'cwTeXQHei', 'normal');
-  doc.addFont('cwTeXQHei.ttf', 'cwTeXQHei', 'bold'); 
+  doc.addFileToVFS('NotoSansTC.ttf', base64Font);
+  doc.addFont('NotoSansTC.ttf', 'NotoSansTC', 'normal');
+  doc.addFont('NotoSansTC.ttf', 'NotoSansTC', 'bold'); 
 }
   
 // ════════════════════════════════════════════════
@@ -926,17 +927,16 @@ async function buildPDF(fields, imageData) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
 
-  // 🌟 1. 呼叫我們剛剛寫的函式，等待字體載入完成
+  // 載入字體
   await loadChineseFont(doc);
 
   const W=210, H=297, M=15;
   let y = M;
   
-  // 🌟 2. 換頁邏輯中，也要確保使用中文字體
   const checkY = need => { 
     if (y+need > H-M) { 
-      doc.addPage(); 
-      doc.setFont('cwTeXQHei','normal'); 
+      doc.addPage();
+      doc.setFont('NotoSansTC','normal'); 
       y=M; 
     } 
   };
@@ -944,18 +944,15 @@ async function buildPDF(fields, imageData) {
   // ── 封面標題 ──
   doc.setFillColor(41,82,200); doc.rect(0,0,W,38,'F');
   doc.setTextColor(255,255,255);
-  doc.setFontSize(16); 
   
-  // 🌟 3. 將原本的 'helvetica' 改為 'cwTeXQHei'
-  doc.setFont('cwTeXQHei','bold');
-  doc.text('Confined Space Work Notification', W/2, 14, {align:'center'});
-  doc.setFontSize(9.5); 
+  // 改為全繁體中文標題
+  doc.setFontSize(16);
+  doc.setFont('NotoSansTC','bold');
+  doc.text('局限空間作業通報書', W/2, 18, {align:'center'});
   
-  // 🌟 4. 設定回 normal，這行之後的中文就會正常顯示了！
-  doc.setFont('cwTeXQHei','normal');
-  doc.text('局限空間作業通報書', W/2, 22, {align:'center'});
-  doc.setFontSize(7.5);
-  doc.text(`Generated: ${new Date().toLocaleString('zh-TW')}`, W/2, 30, {align:'center'});
+  doc.setFontSize(9);
+  doc.setFont('NotoSansTC','normal');
+  doc.text(`產生時間：${new Date().toLocaleString('zh-TW')}`, W/2, 28, {align:'center'});
   y = 46;
 
   // ── 基本資料表 ──
@@ -970,19 +967,19 @@ async function buildPDF(fields, imageData) {
     ['作業區域', fields.workArea||'—'],
     ['詳細位置', fields.workDetail||'—'],
   ];
+
   doc.setFontSize(9);
   rows.forEach(([lbl,val],i) => {
     checkY(10);
     doc.setFillColor(...(i%2===0?[247,248,252]:[255,255,255]));
     doc.rect(M,y-5,W-M*2,9,'F');
     
-    // 🌟 5. 表格欄位名稱字體設定
-    doc.setFont('cwTeXQHei','bold'); 
+    // 套用 NotoSansTC
+    doc.setFont('NotoSansTC','bold'); 
     doc.setTextColor(80,100,140);
     doc.text(lbl, M+2, y);
     
-    // 🌟 6. 表格內容字體設定
-    doc.setFont('cwTeXQHei','normal'); 
+    doc.setFont('NotoSansTC','normal'); 
     doc.setTextColor(20,20,20);
     doc.text(String(val), M+55, y);
     y += 9;
@@ -996,7 +993,10 @@ async function buildPDF(fields, imageData) {
 
     checkY(16);
     doc.setFillColor(41,82,200); doc.rect(M,y-4,W-M*2,8,'F');
-    doc.setTextColor(255,255,255); doc.setFontSize(8.5); doc.setFont('cwTeXQHei','bold');
+    doc.setTextColor(255,255,255); doc.setFontSize(8.5); 
+    
+    // 解決相片標題亂碼：確實套用中文字型
+    doc.setFont('NotoSansTC','bold');
     doc.text(item.label, M+3, y+0.5);
     y += 10;
 
@@ -1015,8 +1015,9 @@ async function buildPDF(fields, imageData) {
     for (const d of pdfs) {
       checkY(14);
       doc.setFillColor(238,242,252); doc.rect(M,y,W-M*2,12,'F');
-      doc.setTextColor(41,82,200); doc.setFontSize(8); doc.setFont('cwTeXQHei','normal');
-      doc.text(`PDF attachment: ${d.name}`, M+4, y+7);
+      doc.setTextColor(41,82,200); doc.setFontSize(8); doc.setFont('NotoSansTC','normal');
+      // 將附件前綴改成中文
+      doc.text(`PDF 附件：${d.name}`, M+4, y+7);
       y += 15;
     }
     y += 4;
@@ -1026,15 +1027,16 @@ async function buildPDF(fields, imageData) {
   const total = doc.internal.getNumberOfPages();
   for (let p=1;p<=total;p++) {
     doc.setPage(p);
-    doc.setFontSize(7.5); doc.setTextColor(160,160,160); doc.setFont('cwTeXQHei','normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(160,160,160); doc.setFont('NotoSansTC','normal');
     doc.text(fields.project||'', M, H-8);
-    doc.text(`Page ${p} / ${total}`, W-M, H-8, {align:'right'});
+    // 將頁尾頁碼改成中文
+    doc.text(`第 ${p} 頁 / 共 ${total} 頁`, W-M, H-8, {align:'right'});
     doc.setDrawColor(220,220,220); doc.line(M,H-11,W-M,H-11);
   }
 
   return doc.output('datauristring').split(',')[1];
 }
-
 // ════════════════════════════════════════════════
 // 工具函式
 // ════════════════════════════════════════════════
