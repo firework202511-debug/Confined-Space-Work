@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>局限作業通報系統</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root {
   --bg:#f5f6f8; --surface:#fff; --surface-2:#f0f2f6; --surface-3:#e8ebf0;
@@ -780,14 +780,28 @@ async function generateAndPreview() {
 }
 
 // ════════════════════════════════════════════════
-// PDF 下載（本地）
+// PDF 下載（Blob URL，相容所有瀏覽器）
 // ════════════════════════════════════════════════
 function downloadPdf() {
-  if (!S.pdfBase64) { toast('請先生成 PDF','warn'); return; }
-  const link = document.createElement('a');
-  link.href = `data:application/pdf;base64,${S.pdfBase64}`;
-  link.download = S.pdfFilename;
-  link.click();
+  if (!S.pdfBase64) { toast('請先生成 PDF', 'warn'); return; }
+  try {
+    // base64 → Uint8Array → Blob → Object URL
+    const binary = atob(S.pdfBase64);
+    const bytes  = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    const blob   = new Blob([bytes], { type: 'application/pdf' });
+    const url    = URL.createObjectURL(blob);
+    const link   = document.createElement('a');
+    link.href     = url;
+    link.download = S.pdfFilename || 'report.pdf';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    // 釋放記憶體
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+  } catch(e) {
+    toast('下載失敗：' + e.message, 'err');
+  }
 }
 
 // ════════════════════════════════════════════════
@@ -895,92 +909,128 @@ function clearQ() {
 }
 
 // ════════════════════════════════════════════════
-// PDF 生成（HTML 排版轉 PDF）
+// PDF 生成（jsPDF 直接繪製，不依賴 html2canvas）
 // ════════════════════════════════════════════════
 async function buildPDF(fields, imageData) {
-  const container = document.createElement('div');
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const W = 210, H = 297, M = 14; // 頁寬、頁高、邊距
+  let y = M;
 
-  // 🌟 關鍵修正 1：將元素隱藏在畫面外，並給定一個固定寬度，確保排版比例正確
-  container.style.position = 'absolute';
-  container.style.left = '-9999px';
-  container.style.top = '0';
-  container.style.width = '800px'; 
-  container.style.padding = '20px 40px';
-  container.style.fontFamily = "'Noto Sans TC', sans-serif";
-  container.style.color = '#141820';
-  container.style.backgroundColor = '#ffffff'; // 確保背景是白色
-
-  // --- 封面與基本資料表格 ---
-  let html = `
-    <div style="text-align: center; margin-bottom: 20px;">
-      <h1 style="background: #2952c8; color: #fff; padding: 12px; margin: 0; font-size: 24px; border-radius: 6px; letter-spacing: 2px;">局限空間作業通報書</h1>
-      <p style="margin-top: 8px; color: #666; font-size: 14px;">產生時間：${new Date().toLocaleString('zh-TW')}</p>
-    </div>
-    <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; font-size: 14px;">
-      <tbody>
-        <tr><th style="width: 25%; background: #f0f2f6; border: 1px solid #dde1ea; padding: 10px; text-align: left;">承攬商公司</th><td style="border: 1px solid #dde1ea; padding: 10px; font-weight: bold;">${fields.company || '—'}</td></tr>
-        <tr><th style="background: #f0f2f6; border: 1px solid #dde1ea; padding: 10px; text-align: left;">工程名稱</th><td style="border: 1px solid #dde1ea; padding: 10px;">${fields.project || '—'}</td></tr>
-        <tr><th style="background: #f0f2f6; border: 1px solid #dde1ea; padding: 10px; text-align: left;">主辦部門 / 課別</th><td style="border: 1px solid #dde1ea; padding: 10px;">${fields.dept || '—'} / ${fields.section || '—'}</td></tr>
-        <tr><th style="background: #f0f2f6; border: 1px solid #dde1ea; padding: 10px; text-align: left;">檢驗員</th><td style="border: 1px solid #dde1ea; padding: 10px;">${fields.inspector || '—'}</td></tr>
-        <tr><th style="background: #f0f2f6; border: 1px solid #dde1ea; padding: 10px; text-align: left;">作業時間</th><td style="border: 1px solid #dde1ea; padding: 10px;">${fields.startTime.replace('T', ' ')} 至 ${fields.endTime.replace('T', ' ')}</td></tr>
-        <tr><th style="background: #f0f2f6; border: 1px solid #dde1ea; padding: 10px; text-align: left;">作業區域</th><td style="border: 1px solid #dde1ea; padding: 10px;">${fields.workArea || '—'}</td></tr>
-        <tr><th style="background: #f0f2f6; border: 1px solid #dde1ea; padding: 10px; text-align: left;">詳細位置</th><td style="border: 1px solid #dde1ea; padding: 10px;">${fields.workDetail || '—'}</td></tr>
-      </tbody>
-    </table>
-  `;
-
-  // --- 照片與附件區塊 ---
-  for (const item of ITEMS) {
-    const imgs = (imageData[item.k] || []).filter(d => d.type.startsWith('image/'));
-    const pdfs = (imageData[item.k] || []).filter(d => !d.type.startsWith('image/'));
-    if (imgs.length === 0 && pdfs.length === 0) continue;
-
-    html += `
-      <div style="page-break-inside: avoid; margin-bottom: 20px;">
-        <h3 style="background: #2952c8; color: white; padding: 8px 12px; margin: 0 0 10px 0; font-size: 16px; border-radius: 4px;">${item.label}</h3>
-    `;
-
-    if (imgs.length > 0) {
-      html += `<div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">`;
-      for (const img of imgs) {
-        html += `<img src="${img.dataUrl}" style="height: 220px; max-width: 48%; object-fit: contain; border: 1px solid #ccc; border-radius: 4px; padding: 4px;" />`;
-      }
-      html += `</div>`;
-    }
-
-    if (pdfs.length > 0) {
-      for (const pdf of pdfs) {
-        html += `<div style="background: #eef2fc; color: #2952c8; padding: 8px 12px; margin-bottom: 6px; border-radius: 4px; font-size: 14px; font-weight: bold;">📄 附加檔案（已與本單一併上傳）：${pdf.name}</div>`;
-      }
-    }
-    html += `</div>`;
-  }
-
-  container.innerHTML = html;
-  
-  // 🌟 關鍵修正 2：必須將容器實際加入網頁中，套件才能解析
-  document.body.appendChild(container);
-
-  const opt = {
-    margin:       10,
-    filename:     'report.pdf',
-    image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  { scale: 2, useCORS: true },
-    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  // 超出頁面時自動換頁
+  const checkY = (need) => {
+    if (y + need > H - M) { doc.addPage(); y = M; }
   };
 
-  try {
-    const dataUri = await html2pdf().set(opt).from(container).outputPdf('datauristring');
-    
-    // 🌟 關鍵修正 3：成功生成後，將隱藏的容器清理掉
-    document.body.removeChild(container);
-    return dataUri.split(',')[1];
-    
-  } catch (error) {
-    // 若發生錯誤也要記得清理容器，避免殘留在畫面外
-    document.body.removeChild(container);
-    throw error;
+  // ── 頁首色塊 ──
+  doc.setFillColor(41, 82, 200);
+  doc.rect(0, 0, W, 36, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(15); doc.setFont('helvetica', 'bold');
+  doc.text('Confined Space Work Notification', W / 2, 13, { align: 'center' });
+  doc.setFontSize(10); doc.setFont('helvetica', 'normal');
+  doc.text('局限空間作業通報書', W / 2, 21, { align: 'center' });
+  doc.setFontSize(7.5);
+  doc.text('Generated: ' + new Date().toLocaleString('zh-TW'), W / 2, 29, { align: 'center' });
+  y = 44;
+
+  // ── 基本資料表 ──
+  const infoRows = [
+    ['承攬商公司',     fields.company    || '—'],
+    ['工程名稱',       fields.project    || '—'],
+    ['主辦部門',       fields.dept       || '—'],
+    ['主辦課別',       fields.section    || '—'],
+    ['檢驗員姓名',     fields.inspector  || '—'],
+    ['開始時間',       (fields.startTime || '').replace('T', ' ')],
+    ['結束時間',       (fields.endTime   || '').replace('T', ' ')],
+    ['作業區域',       fields.workArea   || '—'],
+    ['作業詳細位置',   fields.workDetail || '—'],
+  ];
+
+  doc.setFontSize(9);
+  infoRows.forEach(([lbl, val], i) => {
+    checkY(10);
+    // 交替底色
+    doc.setFillColor(...(i % 2 === 0 ? [247, 248, 252] : [255, 255, 255]));
+    doc.rect(M, y - 5.5, W - M * 2, 9.5, 'F');
+    // 標籤
+    doc.setFont('helvetica', 'bold'); doc.setTextColor(70, 90, 140);
+    doc.text(lbl, M + 2, y);
+    // 值
+    doc.setFont('helvetica', 'normal'); doc.setTextColor(20, 20, 20);
+    // 長文字自動截斷
+    const maxW = W - M * 2 - 52;
+    const valStr = doc.splitTextToSize(String(val), maxW)[0] || '';
+    doc.text(valStr, M + 50, y);
+    y += 9.5;
+  });
+
+  y += 6;
+
+  // ── 各項目照片區塊 ──
+  for (const item of ITEMS) {
+    const allFiles = imageData[item.k] || [];
+    const imgs = allFiles.filter(d => d.type && d.type.startsWith('image/'));
+    const pdfs = allFiles.filter(d => d.type && !d.type.startsWith('image/'));
+    if (allFiles.length === 0) continue;
+
+    // 區塊標題
+    checkY(14);
+    doc.setFillColor(41, 82, 200);
+    doc.rect(M, y - 4.5, W - M * 2, 8.5, 'F');
+    doc.setTextColor(255, 255, 255); doc.setFontSize(8.5); doc.setFont('helvetica', 'bold');
+    doc.text(item.label, M + 3, y + 0.5);
+    y += 10;
+
+    // 圖片：每行 2 張
+    const imgW = (W - M * 2 - 6) / 2;
+    const imgH = imgW * 0.68;
+    let col = 0;
+
+    for (const d of imgs) {
+      checkY(imgH + 4);
+      const x = M + col * (imgW + 6);
+      try {
+        const fmt = d.type.includes('png') ? 'PNG' : 'JPEG';
+        doc.addImage(d.dataUrl, fmt, x, y, imgW, imgH);
+      } catch (e) {
+        // 圖片讀取失敗時顯示佔位框
+        doc.setDrawColor(200, 200, 200);
+        doc.rect(x, y, imgW, imgH);
+        doc.setFontSize(7); doc.setTextColor(160, 160, 160);
+        doc.text('Image error', x + imgW / 2, y + imgH / 2, { align: 'center' });
+      }
+      col++;
+      if (col >= 2) { col = 0; y += imgH + 4; }
+    }
+    if (col > 0) { y += imgH + 4; } // 補齊最後一行
+
+    // PDF 附件提示
+    for (const d of pdfs) {
+      checkY(12);
+      doc.setFillColor(238, 242, 252);
+      doc.rect(M, y - 3, W - M * 2, 10, 'F');
+      doc.setTextColor(41, 82, 200); doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+      doc.text('PDF attachment: ' + d.name, M + 3, y + 3.5);
+      y += 13;
+    }
+
+    y += 5;
   }
+
+  // ── 頁碼頁尾（每頁） ──
+  const totalPages = doc.internal.getNumberOfPages();
+  for (let p = 1; p <= totalPages; p++) {
+    doc.setPage(p);
+    doc.setFontSize(7.5); doc.setTextColor(170, 170, 170); doc.setFont('helvetica', 'normal');
+    doc.setDrawColor(220, 220, 220);
+    doc.line(M, H - 10, W - M, H - 10);
+    doc.text(fields.project || '', M, H - 6);
+    doc.text(`Page ${p} / ${totalPages}`, W - M, H - 6, { align: 'right' });
+  }
+
+  // 回傳 base64 字串（不含 data URI 前綴）
+  return doc.output('datauristring').split(',')[1];
 }
 // ════════════════════════════════════════════════
 // 工具函式
