@@ -81,6 +81,12 @@ label .r{color:var(--red);margin-left:2px}
 select.inp{padding-right:26px;cursor:pointer}
 select.inp:disabled{cursor:not-allowed}
 
+/* Cascade hints */
+.c-hint{font-size:.73rem;color:var(--text-3);margin-top:3px}
+.c-hint.loading{color:var(--blue)}
+.c-hint.filled{color:var(--green);font-weight:500}
+.c-hint.err{color:var(--red)}
+
 /* Manual area */
 .manual-wrap{margin-top:10px;padding:14px;background:var(--amber-lt);border:1.5px dashed var(--amber);border-radius:var(--r);display:none}
 .manual-wrap.show{display:block}
@@ -297,7 +303,7 @@ tr:hover td{background:var(--surface-2)}
         <div class="g3">
           <div class="fg">
             <label>檢驗員姓名<span class="r">*</span></label>
-            <input type="text" class="inp" id="fInspector" placeholder="請輸入姓名">
+            <input type="text" id="fInspector" class="inp" placeholder="請輸入姓名">
           </div>
           <div class="fg">
             <label>開始時間<span class="r">*</span></label>
@@ -345,4 +351,333 @@ tr:hover td{background:var(--surface-2)}
 
         <div class="btn-row">
           <button class="btn btn-ghost" onclick="toPage1()">
-            <svg width="15
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
+            返回
+          </button>
+          <button class="btn btn-primary" id="btnGenPdf" onclick="exportPDF()">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            生成 PDF 預覽
+          </button>
+          <button class="btn btn-success hidden" id="btnUpload" onclick="uploadToCloud()">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+            上傳至 Google Drive
+          </button>
+        </div>
+
+        <div id="pdfPreviewArea" class="hidden" style="margin-top:18px;padding:16px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r)">
+          <div style="font-size:.85rem;font-weight:600;color:var(--green)">✅ 報表已生成，請在對話框中選擇「另存為 PDF」。確認後點擊「上傳至 Google Drive」送出紀錄。</div>
+        </div>
+      </div>
+    </div>
+  </div><div id="pg3" class="hidden">
+    <div class="card">
+      <div class="done-wrap">
+        <div class="done-icon">✅</div>
+        <div class="done-title">通報資料上傳成功</div>
+        <div class="done-sub">PDF 記錄已寫入 Google Sheets 並同步至雲端硬碟</div>
+        <div id="donePdfArea" style="margin-bottom:20px"></div>
+        <div class="done-actions">
+          <button class="btn btn-primary" onclick="resetAll()">新增下一筆通報</button>
+          <button class="btn btn-ghost" onclick="switchView('query')">查詢所有記錄</button>
+        </div>
+      </div>
+    </div>
+  </div></div><div id="queryView" class="hidden">
+  <div class="card">
+    <div class="card-hd">
+      <div class="card-ico" style="background:var(--green-lt);color:var(--green)">
+        <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div><h2>查詢通報記錄</h2><p>設定條件後交叉篩選</p></div>
+    </div>
+    <div class="q-bar">
+      <div class="fg"><label>承攬商公司</label><div class="sw"><select class="inp" id="qCo"><option value="">— 全部 —</option></select></div></div>
+      <div class="fg"><label>工程名稱</label><div class="sw"><select class="inp" id="qPrj"><option value="">— 全部 —</option></select></div></div>
+      <div class="fg"><label>檢驗員</label><input type="text" class="inp" id="qInsp" placeholder="姓名關鍵字"></div>
+      <div class="fg"><label>查詢日期</label><input type="date" class="inp" id="qDate"></div>
+      <div style="padding-bottom:1px;display:flex;gap:6px"><button class="btn btn-primary" onclick="doQuery()">查詢</button><button class="btn btn-ghost" onclick="clearQ()">清除</button></div>
+    </div>
+    <div class="tbl-wrap" id="qResults"><div class="empty">🔍 請設定條件後查詢</div></div>
+  </div>
+</div>
+
+</main>
+
+<script>
+// ════════════════════════════════════════════════
+// ★ 配置與狀態 [cite: 31, 32, 33]
+// ════════════════════════════════════════════════
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxUPvx8ljoMnAloW6YVduF6rvuoquwa_tgFjjukqEPnoCvNhur2PGbx4yZqUdw8BWhqmQ/exec';
+
+const ITEMS = [
+  { k:'kaohsiung',   label:'高市檢申報擷取畫面' },
+  { k:'permit',      label:'局限空間進入許可證' },
+  { k:'checklist1',  label:'作業前作業場所檢點表' },
+  { k:'checklist2',  label:'作業前作業安全檢核表' },
+  { k:'ventilation', label:'通風設備' },
+  { k:'gas',         label:'氣體偵測器' },
+  { k:'rescue',      label:'急救設備及空氣呼吸器' },
+  { k:'signage',     label:'作業場所告示牌' },
+  { k:'license1',    label:'缺氧作業主管證照' },
+  { k:'license2',    label:'急救人員證照' },
+];
+
+const S = { dd: [], files: {}, isManual: false };
+
+// 初始化
+document.addEventListener('DOMContentLoaded', () => {
+  buildUploadGrid();
+  loadDD();
+  setStepper(1);
+});
+
+// 下拉選單載入 [cite: 35, 36, 37]
+async function loadDD() {
+  setHint('hintCompany', '載入中...', 'loading');
+  try {
+    const res = await fetch(`${GAS_URL}?action=dropdown`);
+    const data = await res.json();
+    S.dd = data;
+    const companies = [...new Set(S.dd.map(r => r.company))].sort();
+    fillSelect('selCompany', companies, '— 請選擇公司 —');
+    fillSelect('qCo', companies, '— 全部 —', false);
+    const allPrj = [...new Set(S.dd.map(r => r.project))].sort();
+    fillSelect('qPrj', allPrj, '— 全部 —', false);
+    setHint('hintCompany', `已載入 ${companies.length} 間公司`, 'filled');
+  } catch(e) { setHint('hintCompany', '載入失敗', 'err'); }
+}
+
+// 連動邏輯略... [cite: 42, 47, 49]
+function onCompanyChange() {
+  const company = document.getElementById('selCompany').value;
+  const projSel = document.getElementById('selProject');
+  projSel.innerHTML = '<option value="">— 請選擇工程 —</option>';
+  projSel.disabled = !company;
+  if (!company) return;
+  const projects = [...new Set(S.dd.filter(r => r.company === company).map(r => r.project))].sort();
+  projects.forEach(p => { const o = document.createElement('option'); o.value = o.textContent = p; projSel.appendChild(o); });
+}
+
+function onProjectChange() {
+  const company = document.getElementById('selCompany').value;
+  const project = document.getElementById('selProject').value;
+  const match = S.dd.find(r => r.company === company && r.project === project);
+  if (match) {
+    document.getElementById('fDept').value = match.dept;
+    document.getElementById('fSection').value = match.section;
+  }
+}
+
+function setHint(id, msg, type) {
+  const el = document.getElementById(id);
+  if (el) { el.textContent = msg; el.className = 'c-hint ' + type; }
+}
+
+function showManual() { S.isManual = true; document.getElementById('manualWrap').classList.add('show'); document.getElementById('btnManual').classList.add('hidden'); }
+function hideManual() { S.isManual = false; document.getElementById('manualWrap').classList.remove('show'); document.getElementById('btnManual').classList.remove('hidden'); }
+
+function getFields() {
+  if (S.isManual) {
+    return {
+      company: document.getElementById('mCompany').value.trim(), project: document.getElementById('mProject').value.trim(),
+      dept: document.getElementById('mDept').value.trim(), section: document.getElementById('mSection').value.trim(),
+      inspector: document.getElementById('fInspector').value.trim(), startTime: document.getElementById('fStart').value,
+      endTime: document.getElementById('fEnd').value, workArea: document.getElementById('fArea').value.trim(), workDetail: document.getElementById('fDetail').value.trim(),
+    };
+  }
+  return {
+    company: document.getElementById('selCompany').value, project: document.getElementById('selProject').value,
+    dept: document.getElementById('fDept').value, section: document.getElementById('fSection').value,
+    inspector: document.getElementById('fInspector').value.trim(), startTime: document.getElementById('fStart').value,
+    endTime: document.getElementById('fEnd').value, workArea: document.getElementById('fArea').value.trim(), workDetail: document.getElementById('fDetail').value.trim(),
+  };
+}
+
+// 上傳區塊
+function buildUploadGrid() {
+  document.getElementById('upGrid').innerHTML = ITEMS.map((item, i) => `
+    <div class="up-box" id="box_${item.k}">
+      <div class="up-lbl"><span class="up-num">${i+1}</span>${item.label}<span class="req-tag">必填</span></div>
+      <div class="up-zone" onclick="triggerFile('${item.k}')">
+        <input type="file" id="fi_${item.k}" multiple accept="image/*,application/pdf" onchange="onFile('${item.k}',this.files)">
+        <div class="zi">📎</div><div class="zt">拖放或點選</div><div class="za">圖片/PDF</div>
+      </div>
+      <div class="previews" id="pv_${item.k}"></div>
+    </div>
+  `).join('');
+}
+
+function triggerFile(k) { document.getElementById(`fi_${k}`).click(); }
+
+function onFile(k, fl) {
+  if (!S.files[k]) S.files[k] = [];
+  Array.from(fl).forEach(f => S.files[k].push(f));
+  renderPreviews(k);
+  document.getElementById(`box_${k}`).classList.toggle('done', S.files[k].length > 0);
+  document.getElementById('btnUpload').classList.add('hidden');
+}
+
+function renderPreviews(k) {
+  const files = S.files[k] || [];
+  document.getElementById(`pv_${k}`).innerHTML = files.map((f, i) => `
+    <div class="prev-item">
+      ${f.type.startsWith('image/') ? `<img src="${URL.createObjectURL(f)}">` : `<div class="fi">📄<div class="fn">${f.name}</div></div>`}
+      <button class="rm" onclick="rmFile('${k}',${i})">✕</button>
+    </div>
+  `).join('');
+}
+
+function rmFile(k, i) { S.files[k].splice(i,1); renderPreviews(k); document.getElementById(`box_${k}`).classList.toggle('done', S.files[k].length>0); }
+
+// 導覽邏輯 [cite: 65, 71]
+async function toPage2() {
+  const f = getFields();
+  if (!f.company || !f.project || !f.inspector || !f.startTime || !f.endTime || !f.workArea) { toast('請填寫必填欄位','err'); return; }
+  if (S.isManual) {
+    showOv('儲存中...','更新選單資料',[]);
+    try {
+      await gasPost({ action:'addDropdown', ...f });
+      S.dd.push(f);
+    } catch(e) {}
+    hideOv();
+  }
+  show('pg2'); hide('pg1'); setStepper(2);
+  window.scrollTo(0,0);
+}
+
+function toPage1() { show('pg1'); hide('pg2'); setStepper(1); }
+
+// ════════════════════════════════════════════════
+// ★ 原生列印優化：解決 PDF 亂碼 [cite: 288, 307, 310, 311]
+// ════════════════════════════════════════════════
+async function exportPDF() {
+  const missing = ITEMS.filter(item => !S.files[item.k] || S.files[item.k].length === 0);
+  if (missing.length > 0) { toast(`尚有 ${missing.length} 項未上傳`, 'err'); return; }
+
+  const f = getFields();
+  showOv('產生報表中...', '正在處理圖片', [{ id: 'p1', label: '處理媒體資料' }, { id: 'p2', label: '生成報表視窗' }]);
+
+  try {
+    ovStep('p1', 'active');
+    const imagePreviews = {};
+    for (const item of ITEMS) {
+      if (S.files[item.k]) {
+        const imgFiles = S.files[item.k].filter(f => f.type.startsWith('image/'));
+        imagePreviews[item.k] = await Promise.all(imgFiles.map(f => fileToBase64(f)));
+      }
+    }
+    ovStep('p1', 'done');
+    ovStep('p2', 'active');
+
+    let html = `
+    <!DOCTYPE html>
+    <html lang="zh-TW">
+    <head>
+      <meta charset="UTF-8">
+      <title>局限空間通報單_${f.project}</title>
+      <style>
+        body { font-family: 'Microsoft JhengHei', sans-serif; padding: 40px; color: #111; line-height: 1.5; }
+        .header { text-align: center; margin-bottom: 30px; border-bottom: 3px solid #2952c8; padding-bottom: 15px; }
+        .header h1 { margin: 0; color: #1d3d9e; font-size: 26px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #cbd5e1; padding: 10px; font-size: 14px; text-align: left; }
+        th { background-color: #f8fafc; width: 25%; color: #334155; }
+        .section-header { background: #eef2fc; font-weight: bold; color: #2952c8; padding: 8px 12px; margin-top: 20px; border-left: 5px solid #2952c8; }
+        .img-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
+        .img-item { border: 1px solid #ddd; padding: 5px; text-align: center; page-break-inside: avoid; }
+        .img-item img { max-width: 100%; height: 200px; object-fit: cover; }
+        .img-label { font-size: 12px; font-weight: bold; margin-top: 5px; }
+      </style>
+    </head>
+    <body>
+      <div class="header"><h1>局限空間作業通報書</h1><div>Confined Space Work Notification Report</div></div>
+      <div style="text-align:right; font-size:12px; color:#666;">產出時間：${new Date().toLocaleString('zh-TW')}</div>
+      <div class="section-header">基本資料</div>
+      <table>
+        <tr><th>承攬商公司</th><td>${f.company}</td><th>工程名稱</th><td>${f.project}</td></tr>
+        <tr><th>主辦部門</th><td>${f.dept}</td><th>主辦課別</th><td>${f.section}</td></tr>
+        <tr><th>檢驗員</th><td>${f.inspector}</td><th>作業區域</th><td>${f.workArea}</td></tr>
+        <tr><th>開始時間</th><td>${f.startTime.replace('T', ' ')}</td><th>結束時間</th><td>${f.endTime.replace('T', ' ')}</td></tr>
+        <tr><th>詳細位置</th><td colspan="3">${f.workDetail || '—'}</td></tr>
+      </table>
+      <div class="section-header">查核照片與附件</div>
+      <div class="img-grid">
+    `;
+
+    for (const item of ITEMS) {
+      if (imagePreviews[item.k]) {
+        imagePreviews[item.k].forEach(img => {
+          html += `<div class="img-item"><img src="${img.dataUrl}"><div class="img-label">${item.label}</div></div>`;
+        });
+      }
+    }
+
+    html += `</div></body></html>`;
+    ovStep('p2', 'done'); hideOv();
+
+    const printWin = window.open('', '_blank');
+    printWin.document.write(html);
+    printWin.document.close();
+
+    setTimeout(() => {
+      printWin.focus(); printWin.print();
+      document.getElementById('pdfPreviewArea').classList.remove('hidden');
+      document.getElementById('btnUpload').classList.remove('hidden');
+      toast('報表已生成，請另存為 PDF','ok');
+    }, 800);
+  } catch(e) { hideOv(); toast('生成失敗','err'); }
+}
+
+// 上傳至雲端 [cite: 88, 89]
+async function uploadToCloud() {
+  const f = getFields();
+  showOv('上傳中...','資料寫入 Google Sheets',[{id:'u1',label:'雲端作業'}]);
+  try {
+    ovStep('u1','active');
+    await gasPost({ action: 'submit', fields: f });
+    ovStep('u1','done'); hideOv(); showDone(); toast('通報成功','ok');
+  } catch(e) { hideOv(); toast('上傳失敗','err'); }
+}
+
+// 查詢邏輯 [cite: 95, 96]
+async function doQuery() {
+  const co = document.getElementById('qCo').value;
+  const prj = document.getElementById('qPrj').value;
+  const insp = document.getElementById('qInsp').value.trim();
+  const dt = document.getElementById('qDate').value;
+  showOv('查詢中...','從 Google Sheets 取得資料',[]);
+  try {
+    const params = new URLSearchParams({ action:'query', company:co, project:prj, inspector:insp, date:dt });
+    const res = await fetch(`${GAS_URL}?${params}`);
+    const rows = await res.json();
+    renderResults(rows);
+  } catch(e) { toast('查詢失敗','err'); }
+  hideOv();
+}
+
+function renderResults(rows) {
+  const el = document.getElementById('qResults');
+  if (!rows || !rows.length) { el.innerHTML = '<div class="empty">查無符合條件記錄</div>'; return; }
+  el.innerHTML = `<table><thead><tr><th>公司</th><th>工程</th><th>檢驗員</th><th>作業地點</th><th>開始</th><th>結束</th></tr></thead><tbody>
+    ${rows.map(r => `<tr><td>${r.company}</td><td>${r.project}</td><td>${r.inspector}</td><td>${r.workArea}</td><td class="mono">${r.startTime.replace('T',' ')}</td><td class="mono">${r.endTime.replace('T',' ')}</td></tr>`).join('')}
+  </tbody></table>`;
+}
+
+// 公用工具
+async function gasPost(payload) { return fetch(GAS_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) }).then(r=>r.json()); }
+function fileToBase64(file) { return new Promise((res,rej) => { const r = new FileReader(); r.onload = e => res({ dataUrl:e.target.result, type:file.type, name:file.name }); r.readAsDataURL(file); }); }
+function fillSelect(id, arr, ph, blank=true) { const s = document.getElementById(id); s.innerHTML = `<option value="">${ph}</option>`; arr.forEach(v => { const o=document.createElement('option'); o.value=v; o.textContent=v; s.appendChild(o); }); }
+function setStepper(p) { [1,2,3].forEach(n => { document.getElementById(`st${n}`).className = 'st'+(n<p?' ok':n===p?' on':''); }); document.getElementById('sl1').className='st-line'+(p>1?' ok':''); document.getElementById('sl2').className='st-line'+(p>2?' ok':''); }
+function switchView(v) { document.getElementById('formView').classList.toggle('hidden',v!=='form'); document.getElementById('queryView').classList.toggle('hidden',v!=='query'); }
+function showDone() { hide('pg2'); show('pg3'); setStepper(3); }
+function resetAll() { location.reload(); }
+function showOv(t,s,st) { document.getElementById('ovTitle').textContent=t; document.getElementById('ovSub').textContent=s; document.getElementById('ovSteps').innerHTML=st.map(i=>`<div class="ov-step" id="${i.id}"><div class="ov-step-dot"></div>${i.label}</div>`).join(''); document.getElementById('overlay').classList.add('on'); }
+function ovStep(id,s) { const el=document.getElementById(id); if(el) el.className=`ov-step ${s}`; }
+function hideOv() { document.getElementById('overlay').classList.remove('on'); }
+function toast(m,t='') { const c=document.getElementById('toasts'), el=document.createElement('div'); el.className=`toast ${t}`; el.textContent=m; c.appendChild(el); setTimeout(()=>el.remove(),4000); }
+const show = id => document.getElementById(id).classList.remove('hidden');
+const hide = id => document.getElementById(id).classList.add('hidden');
+function clearQ() { ['qCo','qPrj'].forEach(id => document.getElementById(id).selectedIndex = 0); document.getElementById('qInsp').value=''; document.getElementById('qDate').value=''; }
+</script>
+</body>
+</html>
