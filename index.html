@@ -16,13 +16,13 @@
   --red:#c0392b; --red-lt:#fdf2f1;
   --amber:#b45309; --amber-lt:#fffbeb;
   --shadow-xs:0 1px 2px rgba(0,0,0,.05);
-  --shadow-sm:0 2px 8px rgba(0,0,0,.07);
   --shadow-lg:0 8px 40px rgba(0,0,0,.12);
   --r:10px; --r-sm:6px; --r-lg:16px;
   --ease:cubic-bezier(.4,0,.2,1);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{font-size:15px} body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text-1);min-height:100vh;line-height:1.65;-webkit-font-smoothing:antialiased}
+html{font-size:15px}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text-1);min-height:100vh;line-height:1.65;-webkit-font-smoothing:antialiased}
 
 /* Header */
 .hdr{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:80;box-shadow:var(--shadow-xs)}
@@ -55,7 +55,7 @@ html{font-size:15px} body{font-family:'Noto Sans TC',sans-serif;background:var(-
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-xs);overflow:hidden}
 .card-hd{padding:18px 28px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
 .card-ico{width:34px;height:34px;border-radius:var(--r-sm);background:var(--blue-lt);color:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.card-hd h2{font-size:.97rem;font-weight:700;letter-spacing:-.01em}
+.card-hd h2{font-size:.97rem;font-weight:700}
 .card-hd p{font-size:.76rem;color:var(--text-2);margin-top:2px}
 .card-bd{padding:24px 28px}
 
@@ -64,10 +64,9 @@ html{font-size:15px} body{font-family:'Noto Sans TC',sans-serif;background:var(-
 .sec span{font-size:.72rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;white-space:nowrap}
 .sec::before,.sec::after{content:'';flex:1;height:1px;background:var(--border)}
 
-/* Grid / Form */
+/* Form */
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
-.full{grid-column:1/-1}
 .fg{display:flex;flex-direction:column;gap:5px}
 label{font-size:.78rem;font-weight:600;color:var(--text-2)}
 label .r{color:var(--red);margin-left:2px}
@@ -80,18 +79,19 @@ label .r{color:var(--red);margin-left:2px}
 select.inp{padding-right:26px;cursor:pointer}
 select.inp:disabled{cursor:not-allowed}
 
-/* Cascading hint */
-.cascade-hint{font-size:.73rem;color:var(--text-3);margin-top:3px;display:flex;align-items:center;gap:4px}
-.cascade-hint.loading{color:var(--blue)}
-.cascade-hint.filled{color:var(--green)}
+/* Cascade hints */
+.c-hint{font-size:.73rem;color:var(--text-3);margin-top:3px}
+.c-hint.loading{color:var(--blue)}
+.c-hint.filled{color:var(--green);font-weight:500}
+.c-hint.err{color:var(--red)}
 
-/* Manual input area */
-.manual-wrap{margin-top:7px;padding:11px;background:var(--amber-lt);border:1px dashed var(--amber);border-radius:var(--r-sm);display:none}
+/* Manual area */
+.manual-wrap{margin-top:10px;padding:14px;background:var(--amber-lt);border:1.5px dashed var(--amber);border-radius:var(--r);display:none}
 .manual-wrap.show{display:block}
-.manual-label{font-size:.73rem;font-weight:600;color:var(--amber);margin-bottom:7px;display:flex;align-items:center;gap:5px}
-.manual-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.manual-lbl{font-size:.75rem;font-weight:700;color:var(--amber);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.manual-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .manual-fg{display:flex;flex-direction:column;gap:4px}
-.manual-fg label{font-size:.73rem;color:var(--text-2)}
+.manual-fg label{font-size:.73rem}
 
 /* Buttons */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px 20px;border-radius:var(--r-sm);font-size:.85rem;font-weight:600;font-family:inherit;cursor:pointer;border:none;transition:all .15s var(--ease)}
@@ -101,6 +101,8 @@ select.inp:disabled{cursor:not-allowed}
 .btn-ghost:hover{background:var(--surface-2);color:var(--text-1)}
 .btn-success{background:var(--green);color:#fff}
 .btn-success:hover{background:#0a6349}
+.btn-download{background:var(--amber-lt);color:var(--amber);border:1.5px solid var(--amber)}
+.btn-download:hover{background:var(--amber);color:#fff}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 .btn-row{display:flex;gap:9px;justify-content:flex-end;margin-top:26px;padding-top:18px;border-top:1px solid var(--border)}
 
@@ -109,7 +111,7 @@ select.inp:disabled{cursor:not-allowed}
 .up-box{border:1.5px dashed var(--border);border-radius:var(--r);padding:14px;background:var(--surface-2);transition:all .18s var(--ease)}
 .up-box:hover{border-color:var(--border-focus);background:var(--blue-lt)}
 .up-box.done{border-style:solid;border-color:var(--green);background:var(--green-lt)}
-.up-box.err{border-color:var(--red);background:var(--red-lt)}
+.up-box.err{border-color:var(--red)!important;background:var(--red-lt)!important}
 .up-lbl{font-size:.79rem;font-weight:600;color:var(--text-2);margin-bottom:9px;display:flex;align-items:center;gap:6px}
 .up-num{width:19px;height:19px;border-radius:50%;background:var(--blue);color:#fff;font-size:.65rem;font-weight:700;flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .up-box.done .up-num{background:var(--green)}
@@ -127,6 +129,13 @@ select.inp:disabled{cursor:not-allowed}
 .rm{position:absolute;top:2px;right:2px;width:15px;height:15px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font-size:.58rem;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .req-tag{font-size:.62rem;background:var(--red-lt);color:var(--red);border-radius:3px;padding:1px 5px;font-weight:600}
 
+/* Done page */
+.done-wrap{text-align:center;padding:48px 28px}
+.done-icon{width:68px;height:68px;border-radius:50%;background:var(--green-lt);border:2px solid var(--green);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:1.8rem}
+.done-title{font-size:1.15rem;font-weight:700;margin-bottom:8px}
+.done-sub{font-size:.85rem;color:var(--text-2);margin-bottom:24px}
+.done-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+
 /* Query */
 .q-bar{display:flex;gap:10px;align-items:flex-end;padding:18px 28px;background:var(--surface-2);border-bottom:1px solid var(--border);flex-wrap:wrap}
 .q-bar .fg{flex:1;min-width:150px}
@@ -141,12 +150,11 @@ tr:hover td{background:var(--surface-2)}
 .pdf-btn:hover{background:var(--blue);color:#fff}
 .empty{text-align:center;padding:48px 24px;color:var(--text-3)}
 .empty .ei{font-size:2.2rem;margin-bottom:10px}
-.empty p{font-size:.85rem}
 
 /* Overlay */
-.overlay{position:fixed;inset:0;background:rgba(245,246,248,.88);backdrop-filter:blur(4px);z-index:200;display:none;place-items:center}
+.overlay{position:fixed;inset:0;background:rgba(245,246,248,.9);backdrop-filter:blur(4px);z-index:200;display:none;place-items:center}
 .overlay.on{display:grid}
-.ov-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:36px 52px;text-align:center;box-shadow:var(--shadow-lg);min-width:280px}
+.ov-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:36px 48px;text-align:center;box-shadow:var(--shadow-lg);min-width:300px}
 .spin{width:42px;height:42px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .ov-title{font-size:.97rem;font-weight:700;margin-bottom:6px}
@@ -159,28 +167,22 @@ tr:hover td{background:var(--surface-2)}
 
 /* Toast */
 .toast-wrap{position:fixed;bottom:22px;right:22px;z-index:300;display:flex;flex-direction:column;gap:7px}
-.toast{background:var(--text-1);color:#fff;padding:11px 17px;border-radius:var(--r);font-size:.82rem;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:9px;animation:tIn .22s var(--ease);max-width:300px}
+.toast{background:var(--text-1);color:#fff;padding:11px 17px;border-radius:var(--r);font-size:.82rem;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:9px;animation:tIn .22s var(--ease);max-width:320px}
 .toast.ok{background:var(--green)}
 .toast.err{background:var(--red)}
 .toast.warn{background:var(--amber)}
 @keyframes tIn{from{transform:translateX(32px);opacity:0}to{transform:none;opacity:1}}
 
-/* Done */
-.done-wrap{text-align:center;padding:56px 28px}
-.done-icon{width:68px;height:68px;border-radius:50%;background:var(--green-lt);border:2px solid var(--green);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:1.8rem}
-.done-title{font-size:1.15rem;font-weight:700;margin-bottom:8px}
-.done-sub{font-size:.85rem;color:var(--text-2);margin-bottom:28px}
-
 .hidden{display:none!important}
 .mono{font-family:'Courier New',monospace;font-size:.78rem}
 
 @media(max-width:680px){
-  .g2,.g3,.upload-grid{grid-template-columns:1fr}
-  .manual-grid{grid-template-columns:1fr}
+  .g2,.g3,.upload-grid,.manual-grid{grid-template-columns:1fr}
   .wrap{padding:14px 14px 60px}
   .card-bd{padding:16px 14px}
   .card-hd,.q-bar,.stepper{padding:14px 16px}
   .hdr-in{padding:0 14px}
+  .ov-card{padding:28px 24px;margin:0 16px}
 }
 </style>
 </head>
@@ -216,7 +218,6 @@ tr:hover td{background:var(--surface-2)}
 
 <!-- ══════ FORM VIEW ══════ -->
 <div id="formView">
-
   <div class="stepper">
     <div class="st on" id="st1"><div class="st-dot" id="sd1">1</div><div class="st-txt">基本資料</div></div>
     <div class="st-line" id="sl1"></div>
@@ -225,7 +226,7 @@ tr:hover td{background:var(--surface-2)}
     <div class="st" id="st3"><div class="st-dot" id="sd3">3</div><div class="st-txt">完成送出</div></div>
   </div>
 
-  <!-- Page 1 -->
+  <!-- Page 1：基本資料 -->
   <div id="pg1">
     <div class="card">
       <div class="card-hd">
@@ -234,26 +235,24 @@ tr:hover td{background:var(--surface-2)}
         </div>
         <div>
           <h2>基本資料填寫</h2>
-          <p>選擇公司 → 篩選工程 → 自動帶入部門課別（連動 Google Sheets DROPDOWNDATA）</p>
+          <p>選公司 → 篩選工程 → 自動帶入部門課別｜找不到請手動輸入，下一步後自動存入選單</p>
         </div>
       </div>
       <div class="card-bd">
 
-        <div class="sec"><span>工程資訊（連動下拉）</span></div>
+        <div class="sec"><span>工程資訊</span></div>
         <div class="g2">
-
-          <!-- 1. 承攬商 -->
+          <!-- 承攬商 -->
           <div class="fg">
             <label>承攬商公司名稱</label>
             <div class="sw">
               <select class="inp" id="selCompany" onchange="onCompanyChange()">
-                <option value="">— 請選擇公司 —</option>
+                <option value="">— 載入中，請稍候 —</option>
               </select>
             </div>
-            <div class="cascade-hint" id="hintCompany">從 Google Sheets 載入中…</div>
+            <div class="c-hint loading" id="hintCompany">正在從 Google Sheets 載入…</div>
           </div>
-
-          <!-- 2. 工程（由公司篩選） -->
+          <!-- 工程 -->
           <div class="fg">
             <label>工程名稱</label>
             <div class="sw">
@@ -261,30 +260,25 @@ tr:hover td{background:var(--surface-2)}
                 <option value="">— 請先選擇公司 —</option>
               </select>
             </div>
-            <div class="cascade-hint" id="hintProject">請先選擇承攬商公司</div>
+            <div class="c-hint" id="hintProject">請先選擇承攬商公司</div>
           </div>
-
-          <!-- 3. 主辦部門（由工程自動帶入） -->
+          <!-- 部門（自動帶入） -->
           <div class="fg">
             <label>主辦部門</label>
             <input type="text" class="inp" id="fDept" placeholder="選擇工程後自動帶入" disabled readonly>
-            <div class="cascade-hint" id="hintDept">請先選擇工程名稱</div>
+            <div class="c-hint" id="hintDept">請先選擇工程名稱</div>
           </div>
-
-          <!-- 4. 主辦課別（由工程自動帶入） -->
+          <!-- 課別（自動帶入） -->
           <div class="fg">
             <label>主辦課別</label>
             <input type="text" class="inp" id="fSection" placeholder="選擇工程後自動帶入" disabled readonly>
-            <div class="cascade-hint" id="hintSection">請先選擇工程名稱</div>
+            <div class="c-hint" id="hintSection">請先選擇工程名稱</div>
           </div>
-
         </div>
 
-        <!-- 手動輸入區（找不到選項時出現） -->
+        <!-- 手動輸入區 -->
         <div class="manual-wrap" id="manualWrap">
-          <div class="manual-label">
-            ✏️ 手動輸入新資料（點選「下一步」後將自動新增至 Google Sheets）
-          </div>
+          <div class="manual-lbl">✏️ 手動輸入（點選「下一步」後自動新增至 Google Sheets 選單）</div>
           <div class="manual-grid">
             <div class="manual-fg">
               <label>承攬商公司名稱<span class="r">*</span></label>
@@ -303,15 +297,12 @@ tr:hover td{background:var(--surface-2)}
               <input type="text" class="inp" id="mSection" placeholder="輸入主辦課別">
             </div>
           </div>
-          <div style="margin-top:8px">
-            <button class="btn btn-ghost" style="font-size:.76rem;padding:5px 12px" onclick="hideManual()">↩ 返回選單選擇</button>
+          <div style="margin-top:10px">
+            <button class="btn btn-ghost" style="font-size:.76rem;padding:5px 12px" onclick="hideManual()">↩ 返回選單</button>
           </div>
         </div>
-
         <div style="margin-top:10px">
-          <button class="btn btn-ghost" style="font-size:.76rem;padding:5px 12px" id="btnManualToggle" onclick="showManual()">
-            ＋ 找不到選項？手動輸入
-          </button>
+          <button class="btn btn-ghost" style="font-size:.76rem;padding:5px 12px" id="btnManual" onclick="showManual()">＋ 找不到選項？手動輸入</button>
         </div>
 
         <div class="sec"><span>作業人員與時間</span></div>
@@ -352,7 +343,7 @@ tr:hover td{background:var(--surface-2)}
     </div>
   </div><!-- /pg1 -->
 
-  <!-- Page 2 -->
+  <!-- Page 2：文件上傳 -->
   <div id="pg2" class="hidden">
     <div class="card">
       <div class="card-hd">
@@ -361,40 +352,65 @@ tr:hover td{background:var(--surface-2)}
         </div>
         <div>
           <h2>文件 & 照片上傳</h2>
-          <p>所有 10 項皆必填 — 照片直接嵌入 PDF，不另行儲存</p>
+          <p>所有 10 項皆必填 — 完成後點「生成 PDF」預覽，再點「上傳至 Google Drive」送出</p>
         </div>
       </div>
       <div class="card-bd">
         <div class="upload-grid" id="upGrid"></div>
+
         <div class="btn-row">
           <button class="btn btn-ghost" onclick="toPage1()">
             <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
             返回
           </button>
-          <button class="btn btn-success" onclick="submitAll()">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            生成 PDF 並上傳
+          <!-- Step A: 生成 PDF（本地預覽+下載） -->
+          <button class="btn btn-primary" id="btnGenPdf" onclick="generateAndPreview()">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            生成 PDF 預覽
           </button>
+          <!-- Step B: 上傳至 Drive（生成後才出現） -->
+          <button class="btn btn-success hidden" id="btnUpload" onclick="uploadToCloud()">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+            上傳至 Google Drive
+          </button>
+        </div>
+
+        <!-- PDF 預覽區（生成後顯示） -->
+        <div id="pdfPreviewArea" class="hidden" style="margin-top:18px;padding:16px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r)">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+            <div>
+              <div style="font-size:.85rem;font-weight:600;color:var(--green)">✅ PDF 已生成，請確認後上傳</div>
+              <div style="font-size:.76rem;color:var(--text-2);margin-top:3px" id="pdfFilename"></div>
+            </div>
+            <button class="btn btn-download" onclick="downloadPdf()">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              下載 PDF
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  </div><!-- /pg2 -->
 
-  <!-- Page 3 -->
+  <!-- Page 3：完成 -->
   <div id="pg3" class="hidden">
     <div class="card">
       <div class="done-wrap">
         <div class="done-icon">✅</div>
         <div class="done-title">通報資料上傳成功</div>
-        <div class="done-sub">PDF 已生成並儲存至 Google Drive，記錄已寫入 Google Sheets</div>
-        <div id="donePdfArea" style="margin-bottom:24px"></div>
-        <div style="display:flex;gap:10px;justify-content:center">
+        <div class="done-sub">PDF 已儲存至 Google Drive，記錄已寫入 Google Sheets</div>
+        <div id="donePdfArea" style="margin-bottom:20px"></div>
+        <div class="done-actions">
+          <button class="btn btn-download" id="btnDoneDownload" onclick="downloadPdf()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            下載 PDF
+          </button>
           <button class="btn btn-primary" onclick="resetAll()">新增下一筆通報</button>
           <button class="btn btn-ghost" onclick="switchView('query')">查詢所有記錄</button>
         </div>
       </div>
     </div>
-  </div>
+  </div><!-- /pg3 -->
 
 </div><!-- /formView -->
 
@@ -407,7 +423,7 @@ tr:hover td{background:var(--surface-2)}
       </div>
       <div>
         <h2>查詢通報記錄</h2>
-        <p>僅輸入公司 → 近一個月；僅輸入日期 → 當日全部；兩者皆輸入 → 交叉篩選</p>
+        <p>僅公司 → 近一個月；僅日期 → 當日全部；兩者 → 交叉篩選</p>
       </div>
     </div>
     <div class="q-bar">
@@ -441,24 +457,14 @@ tr:hover td{background:var(--surface-2)}
 </main>
 
 <script>
-// ══════════════════════════════════════════
-// CONFIG
-// ══════════════════════════════════════════
-const API = 'https://confinedspacework.firework202511.workers.dev'; // ← 替換為您的 Worker URL
+// ════════════════════════════════════════════════
+// ★ 請替換為您的 Google Apps Script Web App URL
+// ════════════════════════════════════════════════
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxXNhO1ces7Sxy_Qu6OVNg1ZjEq-X_Xj2z-EKUl3EuXAj5bnD68S-SaV6dwE1iHlXCx2A/exec';
 
-// ══════════════════════════════════════════
-// DROPDOWN DATA STRUCTURE
-// 從 DROPDOWNDATA 分頁讀取，欄位：A=公司, B=工程, C=部門, D=課別
-// ══════════════════════════════════════════
-
-// S.dd 為完整原始資料陣列，每筆 { company, project, dept, section }
-const S = {
-  dd: [],           // 所有 DROPDOWNDATA 資料
-  files: {},
-  page: 1,
-  isManual: false,
-};
-
+// ════════════════════════════════════════════════
+// 上傳項目定義
+// ════════════════════════════════════════════════
 const ITEMS = [
   { k:'kaohsiung',   label:'高市檢申報擷取畫面' },
   { k:'permit',      label:'局限空間進入許可證' },
@@ -472,88 +478,79 @@ const ITEMS = [
   { k:'license2',    label:'急救人員證照' },
 ];
 
-// ══════════════════════════════════════════
+// ════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════
+const S = {
+  dd: [],          // DROPDOWNDATA 完整資料
+  files: {},       // 上傳檔案
+  isManual: false,
+  pdfBase64: null, // 生成的 PDF base64
+  pdfFilename: '',
+};
+
+// ════════════════════════════════════════════════
 // INIT
-// ══════════════════════════════════════════
+// ════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
   buildUploadGrid();
   loadDD();
   setStepper(1);
 });
 
-// ══════════════════════════════════════════
-// DROPDOWN LOGIC（連動）
-// ══════════════════════════════════════════
+// ════════════════════════════════════════════════
+// 下拉選單載入（從 Apps Script）
+// ════════════════════════════════════════════════
 async function loadDD() {
-  setHint('hintCompany', '從 Google Sheets 載入中…', 'loading');
+  setHint('hintCompany', '正在從 Google Sheets 載入…', 'loading');
   try {
-    // ── REAL: 從 Worker 取得全部 DROPDOWNDATA ──
-    const res = await fetch(`${API}/dropdown`);
-    S.dd = await res.json(); // 陣列: [{company,project,dept,section}, ...]
+    const res  = await fetch(`${GAS_URL}?action=dropdown`);
+    const data = await res.json();
+    S.dd = data; // [{company, project, dept, section}, ...]
 
-
-    // 填入公司下拉（去重）
     const companies = [...new Set(S.dd.map(r => r.company))].sort();
     fillSelect('selCompany', companies, '— 請選擇公司 —');
-    setHint('hintCompany', `已載入 ${companies.length} 間公司`, 'filled');
-
-    // 同步更新查詢頁公司選單
-    fillSelect('qCo', companies, '— 全部 —', false);
-
-    // 預填所有工程到查詢頁
+    fillSelect('qCo',  companies, '— 全部 —', false);
     const allProjects = [...new Set(S.dd.map(r => r.project))].sort();
     fillSelect('qPrj', allProjects, '— 全部 —', false);
 
+    setHint('hintCompany', `已載入 ${companies.length} 間公司`, 'filled');
   } catch(e) {
-    setHint('hintCompany', '⚠ 載入失敗，請確認 Worker 設定', '');
-    toast('無法載入下拉選單，請確認 Worker 是否部署', 'err');
+    setHint('hintCompany', '⚠ 載入失敗，請確認 Apps Script URL', 'err');
+    toast('無法載入下拉選單：' + e.message, 'err');
   }
 }
 
-// 選擇公司 → 篩選工程
+// ════════════════════════════════════════════════
+// 連動下拉邏輯
+// ════════════════════════════════════════════════
 function onCompanyChange() {
   const company = document.getElementById('selCompany').value;
   const projSel = document.getElementById('selProject');
-
-  // 重設工程、部門、課別
   projSel.innerHTML = '<option value="">— 請選擇工程 —</option>';
-  projSel.disabled = !company;
-  document.getElementById('fDept').value = '';
+  projSel.disabled  = !company;
+  document.getElementById('fDept').value    = '';
   document.getElementById('fSection').value = '';
   setHint('hintProject', company ? '請選擇工程名稱' : '請先選擇承攬商公司', '');
-  setHint('hintDept', '請先選擇工程名稱', '');
+  setHint('hintDept',    '請先選擇工程名稱', '');
   setHint('hintSection', '請先選擇工程名稱', '');
-
   if (!company) return;
 
-  // 篩選該公司的工程
-  const projects = [...new Set(
-    S.dd.filter(r => r.company === company).map(r => r.project)
-  )].sort();
-
-  projects.forEach(p => {
-    const o = document.createElement('option');
-    o.value = o.textContent = p;
-    projSel.appendChild(o);
-  });
-
+  const projects = [...new Set(S.dd.filter(r => r.company === company).map(r => r.project))].sort();
+  projects.forEach(p => { const o = document.createElement('option'); o.value = o.textContent = p; projSel.appendChild(o); });
   setHint('hintProject', `找到 ${projects.length} 個工程`, 'filled');
 }
 
-// 選擇工程 → 自動帶入部門、課別
 function onProjectChange() {
   const company = document.getElementById('selCompany').value;
   const project = document.getElementById('selProject').value;
-
   if (!project) {
     document.getElementById('fDept').value = '';
     document.getElementById('fSection').value = '';
-    setHint('hintDept', '請先選擇工程名稱', '');
-    setHint('hintSection', '請先選擇工程名稱', '');
+    setHint('hintDept','請先選擇工程名稱','');
+    setHint('hintSection','請先選擇工程名稱','');
     return;
   }
-
-  // 找到對應的部門、課別
   const match = S.dd.find(r => r.company === company && r.project === project);
   if (match) {
     document.getElementById('fDept').value    = match.dept;
@@ -567,15 +564,13 @@ function setHint(id, msg, type) {
   const el = document.getElementById(id);
   if (!el) return;
   el.textContent = msg;
-  el.className = 'cascade-hint' + (type ? ' ' + type : '');
+  el.className = 'c-hint' + (type ? ' ' + type : '');
 }
 
-// 手動輸入開關
 function showManual() {
   S.isManual = true;
   document.getElementById('manualWrap').classList.add('show');
-  document.getElementById('btnManualToggle').classList.add('hidden');
-  // 清除下拉值，避免混用
+  document.getElementById('btnManual').classList.add('hidden');
   document.getElementById('selCompany').value = '';
   document.getElementById('selProject').innerHTML = '<option value="">— 請先選擇公司 —</option>';
   document.getElementById('selProject').disabled = true;
@@ -586,38 +581,35 @@ function showManual() {
 function hideManual() {
   S.isManual = false;
   document.getElementById('manualWrap').classList.remove('show');
-  document.getElementById('btnManualToggle').classList.remove('hidden');
+  document.getElementById('btnManual').classList.remove('hidden');
   ['mCompany','mProject','mDept','mSection'].forEach(id => document.getElementById(id).value = '');
 }
 
-// 取得工程資訊（整合下拉 or 手動）
-function getFormFields() {
+function getFields() {
   if (S.isManual) {
     return {
-      company:  document.getElementById('mCompany').value.trim(),
-      project:  document.getElementById('mProject').value.trim(),
-      dept:     document.getElementById('mDept').value.trim(),
-      section:  document.getElementById('mSection').value.trim(),
-      isManual: true,
+      company: document.getElementById('mCompany').value.trim(),
+      project: document.getElementById('mProject').value.trim(),
+      dept:    document.getElementById('mDept').value.trim(),
+      section: document.getElementById('mSection').value.trim(),
     };
   }
   return {
-    company:  document.getElementById('selCompany').value,
-    project:  document.getElementById('selProject').value,
-    dept:     document.getElementById('fDept').value,
-    section:  document.getElementById('fSection').value,
-    isManual: false,
+    company: document.getElementById('selCompany').value,
+    project: document.getElementById('selProject').value,
+    dept:    document.getElementById('fDept').value,
+    section: document.getElementById('fSection').value,
   };
 }
 
-// ══════════════════════════════════════════
-// UPLOAD GRID
-// ══════════════════════════════════════════
+// ════════════════════════════════════════════════
+// 上傳 Grid
+// ════════════════════════════════════════════════
 function buildUploadGrid() {
   document.getElementById('upGrid').innerHTML = ITEMS.map((item, i) => `
     <div class="up-box" id="box_${item.k}">
       <div class="up-lbl">
-        <span class="up-num" id="num_${item.k}">${i+1}</span>
+        <span class="up-num">${i+1}</span>
         ${item.label}
         <span class="req-tag">必填</span>
       </div>
@@ -634,7 +626,7 @@ function buildUploadGrid() {
 
   document.querySelectorAll('.up-zone').forEach(z => {
     z.addEventListener('dragover', e => { e.preventDefault(); z.style.borderColor='var(--blue)'; });
-    z.addEventListener('dragleave', () => z.style.borderColor = '');
+    z.addEventListener('dragleave', () => z.style.borderColor='');
     z.addEventListener('drop', e => {
       e.preventDefault(); z.style.borderColor='';
       const k = z.closest('.up-box').id.replace('box_','');
@@ -651,6 +643,13 @@ function onFile(k, fl) {
   renderPreviews(k);
   document.getElementById(`box_${k}`).classList.toggle('done', S.files[k].length > 0);
   document.getElementById(`box_${k}`).classList.remove('err');
+  // 如果已生成 PDF，需重新生成
+  if (S.pdfBase64) {
+    S.pdfBase64 = null;
+    document.getElementById('pdfPreviewArea').classList.add('hidden');
+    document.getElementById('btnUpload').classList.add('hidden');
+    document.getElementById('btnGenPdf').classList.remove('hidden');
+  }
 }
 
 function renderPreviews(k) {
@@ -664,59 +663,48 @@ function renderPreviews(k) {
 }
 
 function rmFile(k, i) {
-  S.files[k].splice(i, 1);
+  S.files[k].splice(i,1);
   renderPreviews(k);
-  document.getElementById(`box_${k}`).classList.toggle('done', S.files[k].length > 0);
+  document.getElementById(`box_${k}`).classList.toggle('done', S.files[k].length>0);
 }
 
-// ══════════════════════════════════════════
-// NAVIGATION
-// ══════════════════════════════════════════
+// ════════════════════════════════════════════════
+// 頁面導覽
+// ════════════════════════════════════════════════
 async function toPage2() {
-  const f = getFormFields();
-
-  // 驗證工程資訊
+  const f = getFields();
   if (S.isManual) {
-    if (!f.company) { toast('請填寫承攬商公司名稱', 'err'); return; }
-    if (!f.project) { toast('請填寫工程名稱', 'err'); return; }
-    if (!f.dept)    { toast('請填寫主辦部門', 'err'); return; }
-    if (!f.section) { toast('請填寫主辦課別', 'err'); return; }
+    if (!f.company) { toast('請填寫承攬商公司名稱','err'); return; }
+    if (!f.project) { toast('請填寫工程名稱','err'); return; }
+    if (!f.dept)    { toast('請填寫主辦部門','err'); return; }
+    if (!f.section) { toast('請填寫主辦課別','err'); return; }
   } else {
-    if (!f.company) { toast('請選擇承攬商公司', 'err'); return; }
-    if (!f.project) { toast('請選擇工程名稱', 'err'); return; }
+    if (!f.company) { toast('請選擇承攬商公司','err'); return; }
+    if (!f.project) { toast('請選擇工程名稱','err'); return; }
   }
+  if (!document.getElementById('fInspector').value.trim()) { toast('請填寫檢驗員姓名','err'); return; }
+  if (!document.getElementById('fStart').value) { toast('請填寫開始時間','err'); return; }
+  if (!document.getElementById('fEnd').value)   { toast('請填寫結束時間','err'); return; }
+  if (document.getElementById('fEnd').value <= document.getElementById('fStart').value) { toast('結束時間必須晚於開始時間','err'); return; }
+  if (!document.getElementById('fArea').value.trim()) { toast('請填寫作業區域','err'); return; }
 
-  if (!document.getElementById('fInspector').value.trim()) { toast('請填寫檢驗員姓名', 'err'); return; }
-  if (!document.getElementById('fStart').value) { toast('請填寫開始時間', 'err'); return; }
-  if (!document.getElementById('fEnd').value)   { toast('請填寫結束時間', 'err'); return; }
-  if (document.getElementById('fEnd').value <= document.getElementById('fStart').value) { toast('結束時間必須晚於開始時間', 'err'); return; }
-  if (!document.getElementById('fArea').value.trim()) { toast('請填寫作業區域', 'err'); return; }
-
-  // 如果是手動輸入 → 先送 Worker 新增至 Google Sheets
+  // 手動輸入 → 立即寫入 DROPDOWNDATA
   if (S.isManual) {
-    showOv('新增選單資料…', '將手動輸入的資料寫入 Google Sheets', []);
+    showOv('儲存新選單資料…','正在將手動輸入的資料寫入 Google Sheets',[]);
     try {
-      // REAL:
-      await fetch(`${API}/dropdown/add`, {
-      method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ company:f.company, project:f.project, dept:f.dept, section:f.section })
-      });
-
-      // 更新本地 S.dd
+      await gasPost({ action:'addDropdown', company:f.company, project:f.project, dept:f.dept, section:f.section });
+      // 更新本地資料
       S.dd.push({ company:f.company, project:f.project, dept:f.dept, section:f.section });
-      // 更新公司下拉
-      const companies = [...new Set(S.dd.map(r => r.company))].sort();
-      fillSelect('selCompany', companies, '— 請選擇公司 —');
-      fillSelect('qCo', companies, '— 全部 —', false);
-      fillSelect('qPrj', [...new Set(S.dd.map(r => r.project))].sort(), '— 全部 —', false);
-
+      const cos = [...new Set(S.dd.map(r=>r.company))].sort();
+      const prs = [...new Set(S.dd.map(r=>r.project))].sort();
+      fillSelect('selCompany', cos, '— 請選擇公司 —');
+      fillSelect('qCo', cos, '— 全部 —', false);
+      fillSelect('qPrj', prs, '— 全部 —', false);
       hideOv();
-      toast('✓ 新資料已寫入 Google Sheets 選單', 'ok');
+      toast('✓ 新資料已寫入選單', 'ok');
     } catch(e) {
       hideOv();
-      toast('寫入選單失敗：' + e.message, 'warn');
-      // 繼續進行（不阻擋主流程）
+      toast('寫入選單失敗（不影響送出）：'+e.message, 'warn');
     }
   }
 
@@ -729,33 +717,25 @@ function toPage1() {
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
-function setStepper(p) {
-  S.page = p;
-  [1,2,3].forEach(n => {
-    document.getElementById(`st${n}`).className = 'st' + (n < p ? ' ok' : n === p ? ' on' : '');
-    document.getElementById(`sd${n}`).textContent = n < p ? '✓' : String(n);
-  });
-  document.getElementById('sl1').className = 'st-line' + (p > 1 ? ' ok' : '');
-  document.getElementById('sl2').className = 'st-line' + (p > 2 ? ' ok' : '');
-}
-
-// ══════════════════════════════════════════
-// SUBMIT
-// ══════════════════════════════════════════
-async function submitAll() {
+// ════════════════════════════════════════════════
+// Step A：生成 PDF（本地，可下載預覽）
+// ════════════════════════════════════════════════
+async function generateAndPreview() {
+  // 驗證所有上傳項目
   const missing = ITEMS.filter(item => !S.files[item.k] || S.files[item.k].length === 0);
   if (missing.length > 0) {
     ITEMS.forEach(item => {
-      document.getElementById(`box_${item.k}`).classList.toggle('err',
-        !S.files[item.k] || S.files[item.k].length === 0);
+      document.getElementById(`box_${item.k}`).classList.toggle(
+        'err', !S.files[item.k] || S.files[item.k].length === 0
+      );
     });
     toast(`尚有 ${missing.length} 項未上傳（${missing[0].label}…）`, 'err');
     document.getElementById(`box_${missing[0].k}`).scrollIntoView({behavior:'smooth',block:'center'});
     return;
   }
 
-  const f = getFormFields();
-  const fields = {
+  const f = getFields();
+  const allFields = {
     company:    f.company,
     project:    f.project,
     dept:       f.dept,
@@ -767,11 +747,9 @@ async function submitAll() {
     workDetail: document.getElementById('fDetail').value.trim(),
   };
 
-  showOv('處理中…', '正在生成 PDF 並上傳', [
-    { id:'s1', label:'讀取並壓縮照片' },
-    { id:'s2', label:'生成 PDF 報告' },
-    { id:'s3', label:'上傳至 Google Drive' },
-    { id:'s4', label:'寫入 Google Sheets 記錄' },
+  showOv('生成 PDF 中…', '讀取照片並排版，請稍候', [
+    { id:'s1', label:'讀取並處理照片' },
+    { id:'s2', label:'排版生成 PDF' },
   ]);
 
   try {
@@ -783,82 +761,190 @@ async function submitAll() {
     ovStep('s1','done');
 
     ovStep('s2','active');
-    const pdfBase64 = await generatePDF(fields, imageData);
+    S.pdfBase64 = await buildPDF(allFields, imageData);
+    S.pdfFilename = `局限作業通報_${allFields.project.replace(/[/\\:*?"<>|]/g,'_')}_${allFields.startTime.slice(0,10)}.pdf`;
     ovStep('s2','done');
 
-    ovStep('s3','active');
-    // REAL:
-    const res = await fetch(`${API}/submit`, {
-    method:'POST', headers:{'Content-Type':'application/json'},
-     body: JSON.stringify({ fields, pdfBase64 })
-     });
-    const { pdfUrl } = await res.json();
-    ovStep('s3','done');
-
-    ovStep('s4','active');
-    await delay(500);
-    ovStep('s4','done');
-
     hideOv();
-    showDone(pdfUrl);
-    toast('通報資料成功送出！', 'ok');
+
+    // 顯示預覽區與上傳按鈕
+    document.getElementById('pdfFilename').textContent = S.pdfFilename;
+    document.getElementById('pdfPreviewArea').classList.remove('hidden');
+    document.getElementById('btnUpload').classList.remove('hidden');
+    document.getElementById('btnGenPdf').textContent = '重新生成 PDF';
+    toast('PDF 已生成，可下載預覽或直接上傳', 'ok');
   } catch(err) {
     hideOv();
-    toast('送出失敗：' + err.message, 'err');
+    toast('PDF 生成失敗：' + err.message, 'err');
   }
 }
 
-// ══════════════════════════════════════════
-// PDF GENERATION
-// ══════════════════════════════════════════
-async function generatePDF(fields, imageData) {
+// ════════════════════════════════════════════════
+// PDF 下載（本地）
+// ════════════════════════════════════════════════
+function downloadPdf() {
+  if (!S.pdfBase64) { toast('請先生成 PDF','warn'); return; }
+  const link = document.createElement('a');
+  link.href = `data:application/pdf;base64,${S.pdfBase64}`;
+  link.download = S.pdfFilename;
+  link.click();
+}
+
+// ════════════════════════════════════════════════
+// Step B：上傳至 Google Drive（透過 Apps Script）
+// ════════════════════════════════════════════════
+async function uploadToCloud() {
+  if (!S.pdfBase64) { toast('請先生成 PDF','warn'); return; }
+
+  const f = getFields();
+  const allFields = {
+    company:    f.company,
+    project:    f.project,
+    dept:       f.dept,
+    section:    f.section,
+    inspector:  document.getElementById('fInspector').value.trim(),
+    startTime:  document.getElementById('fStart').value,
+    endTime:    document.getElementById('fEnd').value,
+    workArea:   document.getElementById('fArea').value.trim(),
+    workDetail: document.getElementById('fDetail').value.trim(),
+  };
+
+  showOv('上傳至 Google Drive…', '正在儲存 PDF 並寫入記錄', [
+    { id:'u1', label:'上傳 PDF 至 Google Drive' },
+    { id:'u2', label:'寫入 Google Sheets 記錄' },
+  ]);
+
+  try {
+    ovStep('u1','active');
+    const result = await gasPost({
+      action:      'submit',
+      fields:      allFields,
+      pdfBase64:   S.pdfBase64,
+      pdfFilename: S.pdfFilename,
+    });
+    ovStep('u1','done');
+    ovStep('u2','active');
+    // Apps Script 同步完成寫入
+    await delay(300);
+    ovStep('u2','done');
+
+    hideOv();
+    showDone(result.pdfUrl);
+    toast('通報資料成功上傳！', 'ok');
+  } catch(err) {
+    hideOv();
+    toast('上傳失敗：' + err.message, 'err');
+  }
+}
+
+function showDone(pdfUrl) {
+  hide('pg2'); show('pg3'); setStepper(3);
+  document.getElementById('donePdfArea').innerHTML = pdfUrl
+    ? `<a class="pdf-btn" href="${pdfUrl}" target="_blank" style="font-size:.88rem;padding:10px 18px">📄 在 Google Drive 開啟 PDF</a>`
+    : '';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ════════════════════════════════════════════════
+// 查詢
+// ════════════════════════════════════════════════
+async function doQuery() {
+  const co   = document.getElementById('qCo').value;
+  const prj  = document.getElementById('qPrj').value;
+  const insp = document.getElementById('qInsp').value.trim();
+  const dt   = document.getElementById('qDate').value;
+
+  showOv('查詢中…', '正在從 Google Sheets 取得記錄', []);
+  try {
+    const params = new URLSearchParams({ action:'query', company:co, project:prj, inspector:insp, date:dt });
+    const res  = await fetch(`${GAS_URL}?${params}`);
+    const rows = await res.json();
+    hideOv();
+    renderResults(rows);
+  } catch(e) {
+    hideOv();
+    toast('查詢失敗：' + e.message, 'err');
+  }
+}
+
+function renderResults(rows) {
+  const el = document.getElementById('qResults');
+  if (!rows || !rows.length) {
+    el.innerHTML='<div class="empty"><div class="ei">📭</div><p>查無符合條件的通報記錄</p></div>';
+    return;
+  }
+  el.innerHTML=`<table><thead><tr>
+    <th>公司名稱</th><th>工程名稱</th><th>部門/課別</th><th>檢驗員</th>
+    <th>作業地點</th><th>開始時間</th><th>結束時間</th><th>PDF</th>
+  </tr></thead><tbody>${rows.map(r=>`<tr>
+    <td>${r.company||''}</td><td>${r.project||''}</td>
+    <td>${r.dept||''}/${r.section||''}</td><td>${r.inspector||''}</td>
+    <td>${r.workArea||''}</td>
+    <td class="mono">${(r.startTime||'').replace('T',' ')}</td>
+    <td class="mono">${(r.endTime||'').replace('T',' ')}</td>
+    <td>${r.pdfUrl ? `<a class="pdf-btn" href="${r.pdfUrl}" target="_blank">📄 開啟</a>` : '—'}</td>
+  </tr>`).join('')}</tbody></table>
+  <div style="padding:9px 16px;font-size:.72rem;color:var(--text-3);border-top:1px solid var(--border)">共 ${rows.length} 筆記錄</div>`;
+}
+
+function clearQ() {
+  ['qCo','qPrj'].forEach(id => document.getElementById(id).selectedIndex = 0);
+  document.getElementById('qInsp').value = '';
+  document.getElementById('qDate').value = '';
+  document.getElementById('qResults').innerHTML='<div class="empty"><div class="ei">🔍</div><p>請設定查詢條件後按下查詢</p></div>';
+}
+
+// ════════════════════════════════════════════════
+// PDF 生成（jsPDF）
+// ════════════════════════════════════════════════
+async function buildPDF(fields, imageData) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
   const W=210, H=297, M=15;
   let y = M;
   const checkY = need => { if (y+need > H-M) { doc.addPage(); y=M; } };
 
-  // Header
-  doc.setFillColor(41,82,200); doc.rect(0,0,W,36,'F');
+  // ── 封面標題 ──
+  doc.setFillColor(41,82,200); doc.rect(0,0,W,38,'F');
   doc.setTextColor(255,255,255);
   doc.setFontSize(16); doc.setFont('helvetica','bold');
   doc.text('Confined Space Work Notification', W/2, 14, {align:'center'});
-  doc.setFontSize(9); doc.setFont('helvetica','normal');
-  doc.text('局限空間作業通報書', W/2, 21, {align:'center'});
+  doc.setFontSize(9.5); doc.setFont('helvetica','normal');
+  doc.text('局限空間作業通報書', W/2, 22, {align:'center'});
   doc.setFontSize(7.5);
-  doc.text(`Generated: ${new Date().toLocaleString('zh-TW')}`, W/2, 29, {align:'center'});
-  y = 44;
+  doc.text(`Generated: ${new Date().toLocaleString('zh-TW')}`, W/2, 30, {align:'center'});
+  y = 46;
 
-  // Fields table
+  // ── 基本資料表 ──
   const rows = [
-    ['Company / 承攬商',  fields.company  || '—'],
-    ['Project / 工程名稱', fields.project || '—'],
-    ['Department / 主辦部門', fields.dept || '—'],
-    ['Section / 主辦課別', fields.section || '—'],
-    ['Inspector / 檢驗員', fields.inspector],
-    ['Start / 開始時間',  fields.startTime],
-    ['End / 結束時間',    fields.endTime],
-    ['Work Area / 作業區域', fields.workArea],
-    ['Location / 詳細位置', fields.workDetail || '—'],
+    ['Company', fields.company||'—'],
+    ['Project', fields.project||'—'],
+    ['Department', fields.dept||'—'],
+    ['Section', fields.section||'—'],
+    ['Inspector', fields.inspector||'—'],
+    ['Start Time', fields.startTime||'—'],
+    ['End Time', fields.endTime||'—'],
+    ['Work Area', fields.workArea||'—'],
+    ['Location Detail', fields.workDetail||'—'],
   ];
   doc.setFontSize(9);
   rows.forEach(([lbl,val],i) => {
     checkY(10);
     doc.setFillColor(...(i%2===0?[247,248,252]:[255,255,255]));
     doc.rect(M,y-5,W-M*2,9,'F');
-    doc.setTextColor(80,100,140); doc.setFont('helvetica','bold');
+    doc.setFont('helvetica','bold'); doc.setTextColor(80,100,140);
     doc.text(lbl, M+2, y);
-    doc.setTextColor(30,30,30); doc.setFont('helvetica','normal');
-    doc.text(String(val), M+65, y);
+    doc.setFont('helvetica','normal'); doc.setTextColor(20,20,20);
+    doc.text(String(val), M+55, y);
     y += 9;
   });
-  y += 6;
+  y += 8;
 
-  // Photos per item
+  // ── 各項目照片 ──
   for (const item of ITEMS) {
-    const imgs = (imageData[item.k] || []).filter(d => d.type.startsWith('image/'));
-    const pdfs = (imageData[item.k] || []).filter(d => !d.type.startsWith('image/'));
-    if (imageData[item.k].length === 0) continue;
+    const imgs = (imageData[item.k]||[]).filter(d=>d.type.startsWith('image/'));
+    const pdfs = (imageData[item.k]||[]).filter(d=>!d.type.startsWith('image/'));
+    if (!imageData[item.k]?.length) continue;
 
     checkY(16);
     doc.setFillColor(41,82,200); doc.rect(M,y-4,W-M*2,8,'F');
@@ -871,25 +957,24 @@ async function generatePDF(fields, imageData) {
     for (const d of imgs) {
       checkY(imgH+4);
       try {
-        const fmt = d.type.includes('png')?'PNG':'JPEG';
-        doc.addImage(d.dataUrl, fmt, M+col*(imgW+5), y, imgW, imgH);
+        doc.addImage(d.dataUrl, d.type.includes('png')?'PNG':'JPEG', M+col*(imgW+5), y, imgW, imgH);
       } catch(e) {}
       col++;
       if (col>=2) { col=0; y+=imgH+4; }
     }
-    if (col>0) y += imgH+4;
+    if (col>0) y+=imgH+4;
 
-    pdfs.forEach(d => {
+    for (const d of pdfs) {
       checkY(14);
       doc.setFillColor(238,242,252); doc.rect(M,y,W-M*2,12,'F');
-      doc.setTextColor(41,82,200); doc.setFontSize(8);
+      doc.setTextColor(41,82,200); doc.setFontSize(8); doc.setFont('helvetica','normal');
       doc.text(`PDF attachment: ${d.name}`, M+4, y+7);
       y += 15;
-    });
+    }
     y += 4;
   }
 
-  // Footer
+  // ── 頁碼頁尾 ──
   const total = doc.internal.getNumberOfPages();
   for (let p=1;p<=total;p++) {
     doc.setPage(p);
@@ -898,104 +983,47 @@ async function generatePDF(fields, imageData) {
     doc.text(`Page ${p} / ${total}`, W-M, H-8, {align:'right'});
     doc.setDrawColor(220,220,220); doc.line(M,H-11,W-M,H-11);
   }
+
   return doc.output('datauristring').split(',')[1];
 }
 
-// ══════════════════════════════════════════
-// QUERY
-// ══════════════════════════════════════════
-async function doQuery() {
-  const co   = document.getElementById('qCo').value;
-  const prj  = document.getElementById('qPrj').value;
-  const insp = document.getElementById('qInsp').value.trim();
-  const dt   = document.getElementById('qDate').value;
-  showOv('查詢中…', '正在從 Google Sheets 取得記錄', []);
-  try {
-    const params = new URLSearchParams({company:co,project:prj,inspector:insp,date:dt});
-    const rows = await (await fetch(`${API}/query?${params}`)).json();
-    hideOv();
-    renderResults(rows);
-  } catch(e) { hideOv(); toast('查詢失敗：'+e.message,'err'); }
-}
-
-function demoQuery(co,prj,insp,dt) {
-  const all = [
-    { company:'台灣工程股份有限公司', project:'高雄港區管線維護工程', dept:'工務部',    section:'第一課', inspector:'林志明', startTime:'2025-04-01 08:00', endTime:'2025-04-01 17:00', workArea:'A棟B1', pdfUrl:'https://drive.google.com/file/d/DEMO1/view' },
-    { company:'南方承攬有限公司',     project:'台南化工廠改善工程',   dept:'安全環境部', section:'品管課', inspector:'陳美玲', startTime:'2025-04-03 09:30', endTime:'2025-04-03 16:00', workArea:'C棟管道', pdfUrl:'https://drive.google.com/file/d/DEMO2/view' },
-    { company:'台灣工程股份有限公司', project:'屏東水處理廠更新工程', dept:'機電部',    section:'第二課', inspector:'王大明', startTime:'2025-04-07 07:00', endTime:'2025-04-07 15:30', workArea:'泵浦室', pdfUrl:'https://drive.google.com/file/d/DEMO3/view' },
-  ];
-  const now=new Date(), ago=new Date(now); ago.setMonth(ago.getMonth()-1);
-  return all.filter(r=>{
-    const rd=new Date(r.startTime);
-    if(co&&!dt&&!prj&&!insp) return r.company===co&&rd>=ago;
-    if(dt&&!co&&!prj&&!insp) return r.startTime.startsWith(dt);
-    if(co&&dt&&!prj&&!insp) return r.company===co&&r.startTime.startsWith(dt);
-    return(!co||r.company===co)&&(!prj||r.project===prj)&&(!insp||r.inspector.includes(insp))&&(!dt||r.startTime.startsWith(dt));
+// ════════════════════════════════════════════════
+// 工具函式
+// ════════════════════════════════════════════════
+async function gasPost(payload) {
+  // Apps Script 不支援 CORS POST with JSON body，改用 no-cors 或透過 GET 參數
+  // 使用 fetch no-cors + FormData，Apps Script 以 doPost 接收
+  const res = await fetch(GAS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
   });
-}
-
-function renderResults(rows) {
-  const el = document.getElementById('qResults');
-  if (!rows.length) { el.innerHTML='<div class="empty"><div class="ei">📭</div><p>查無符合條件的記錄</p></div>'; return; }
-  el.innerHTML=`<table><thead><tr>
-    <th>公司名稱</th><th>工程名稱</th><th>部門/課別</th><th>檢驗員</th><th>作業地點</th><th>開始時間</th><th>結束時間</th><th>PDF</th>
-  </tr></thead><tbody>${rows.map(r=>`<tr>
-    <td>${r.company}</td><td>${r.project}</td><td>${r.dept}/${r.section}</td>
-    <td>${r.inspector}</td><td>${r.workArea}</td>
-    <td class="mono">${r.startTime}</td><td class="mono">${r.endTime}</td>
-    <td><a class="pdf-btn" href="${r.pdfUrl}" target="_blank">📄 開啟</a></td>
-  </tr>`).join('')}</tbody></table>
-  <div style="padding:9px 16px;font-size:.72rem;color:var(--text-3);border-top:1px solid var(--border)">共 ${rows.length} 筆</div>`;
-}
-
-function clearQ() {
-  ['qCo','qPrj'].forEach(id=>document.getElementById(id).selectedIndex=0);
-  document.getElementById('qInsp').value='';
-  document.getElementById('qDate').value='';
-  document.getElementById('qResults').innerHTML='<div class="empty"><div class="ei">🔍</div><p>請設定查詢條件後按下查詢</p></div>';
-}
-
-// ══════════════════════════════════════════
-// UTILS
-// ══════════════════════════════════════════
-function fillSelect(id, arr, placeholder, addBlank=true) {
-  const s = document.getElementById(id);
-  s.innerHTML = addBlank ? `<option value="">${placeholder}</option>` : `<option value="">${placeholder}</option>`;
-  arr.forEach(v => { const o=document.createElement('option'); o.value=o.textContent=v; s.appendChild(o); });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
 }
 
 function fileToBase64(file) {
-  return new Promise((res,rej)=>{
-    const r=new FileReader();
-    r.onload=e=>res({dataUrl:e.target.result,type:file.type,name:file.name});
-    r.onerror=rej; r.readAsDataURL(file);
+  return new Promise((res,rej) => {
+    const r = new FileReader();
+    r.onload = e => res({ dataUrl:e.target.result, type:file.type, name:file.name });
+    r.onerror = rej;
+    r.readAsDataURL(file);
   });
 }
 
-function showDone(pdfUrl) {
-  hide('pg2'); show('pg3'); setStepper(3);
-  document.getElementById('donePdfArea').innerHTML = pdfUrl
-    ? `<a class="pdf-btn" href="${pdfUrl}" target="_blank" style="font-size:.88rem;padding:10px 18px">📄 開啟已生成的 PDF 報告</a>` : '';
-  window.scrollTo({top:0,behavior:'smooth'});
+function fillSelect(id, arr, placeholder, addBlank=true) {
+  const s = document.getElementById(id);
+  s.innerHTML = `<option value="">${placeholder}</option>`;
+  arr.forEach(v => { const o=document.createElement('option'); o.value=o.textContent=v; s.appendChild(o); });
 }
 
-function resetAll() {
-  document.querySelectorAll('.inp').forEach(el=>{ if(el.tagName==='SELECT') el.selectedIndex=0; else el.value=''; });
-  document.getElementById('selProject').disabled=true;
-  document.getElementById('fDept').disabled=true; document.getElementById('fSection').disabled=true;
-  document.getElementById('manualWrap').classList.remove('show');
-  document.getElementById('btnManualToggle').classList.remove('hidden');
-  S.files={}; S.isManual=false;
-  ITEMS.forEach(item=>{
-    document.getElementById(`box_${item.k}`).className='up-box';
-    document.getElementById(`pv_${item.k}`).innerHTML='';
+function setStepper(p) {
+  [1,2,3].forEach(n => {
+    document.getElementById(`st${n}`).className = 'st'+(n<p?' ok':n===p?' on':'');
+    document.getElementById(`sd${n}`).textContent = n<p?'✓':String(n);
   });
-  setHint('hintCompany','請選擇承攬商公司','');
-  setHint('hintProject','請先選擇承攬商公司','');
-  setHint('hintDept','請先選擇工程名稱','');
-  setHint('hintSection','請先選擇工程名稱','');
-  hide('pg3'); show('pg1'); setStepper(1);
-  window.scrollTo({top:0,behavior:'smooth'});
+  document.getElementById('sl1').className = 'st-line'+(p>1?' ok':'');
+  document.getElementById('sl2').className = 'st-line'+(p>2?' ok':'');
 }
 
 function switchView(v) {
@@ -1019,7 +1047,26 @@ function toast(msg,type='') {
   t.className=`toast ${type}`;
   t.innerHTML=`<span>${{ok:'✓',err:'✕',warn:'⚠'}[type]||'ℹ'}</span>${msg}`;
   c.appendChild(t);
-  setTimeout(()=>{t.style.cssText='opacity:0;transition:opacity .4s';setTimeout(()=>t.remove(),400);},3800);
+  setTimeout(()=>{t.style.cssText='opacity:0;transition:opacity .4s';setTimeout(()=>t.remove(),400);},4000);
+}
+
+function resetAll() {
+  document.querySelectorAll('.inp').forEach(el=>{ if(el.tagName==='SELECT') el.selectedIndex=0; else el.value=''; });
+  document.getElementById('selProject').disabled=true;
+  document.getElementById('manualWrap').classList.remove('show');
+  document.getElementById('btnManual').classList.remove('hidden');
+  document.getElementById('pdfPreviewArea').classList.add('hidden');
+  document.getElementById('btnUpload').classList.add('hidden');
+  document.getElementById('btnGenPdf').textContent='生成 PDF 預覽';
+  S.files={}; S.isManual=false; S.pdfBase64=null; S.pdfFilename='';
+  ITEMS.forEach(item=>{
+    document.getElementById(`box_${item.k}`).className='up-box';
+    document.getElementById(`pv_${item.k}`).innerHTML='';
+  });
+  ['hintCompany','hintProject','hintDept','hintSection'].forEach(id=>setHint(id,'',''));
+  setHint('hintCompany',`已載入選單`,'filled');
+  hide('pg3'); show('pg1'); setStepper(1);
+  window.scrollTo({top:0,behavior:'smooth'});
 }
 
 const show  = id => document.getElementById(id).classList.remove('hidden');
