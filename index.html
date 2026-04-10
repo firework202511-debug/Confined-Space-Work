@@ -991,11 +991,10 @@ async function buildPDF(fields, imageData) {
 // 工具函式
 // ════════════════════════════════════════════════
 async function gasPost(payload) {
-  // Apps Script 不支援 CORS POST with JSON body，改用 no-cors 或透過 GET 參數
-  // 使用 fetch no-cors + FormData，Apps Script 以 doPost 接收
   const res = await fetch(GAS_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    // 將 application/json 改為 text/plain 來繞過 CORS 預檢限制
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
     body: JSON.stringify(payload),
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
