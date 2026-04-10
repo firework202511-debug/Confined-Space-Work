@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -146,8 +147,8 @@ th{padding:9px 14px;text-align:left;font-size:.72rem;font-weight:700;color:var(-
 td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:var(--surface-2)}
-.-btn{display:inline-flex;align-items:center;gap:4px;color:var(--blue);text-decoration:none;font-weight:600;padding:4px 9px;border-radius:var(--r-sm);background:var(--blue-lt);font-size:.76rem;transition:all .15s}
-.-btn:hover{background:var(--blue);color:#fff}
+.pdf-btn{display:inline-flex;align-items:center;gap:4px;color:var(--blue);text-decoration:none;font-weight:600;padding:4px 9px;border-radius:var(--r-sm);background:var(--blue-lt);font-size:.76rem;transition:all .15s}
+.pdf-btn:hover{background:var(--blue);color:#fff}
 .empty{text-align:center;padding:48px 24px;color:var(--text-3)}
 .empty .ei{font-size:2.2rem;margin-bottom:10px}
 
@@ -352,7 +353,7 @@ tr:hover td{background:var(--surface-2)}
         </div>
         <div>
           <h2>文件 & 照片上傳</h2>
-          <p>所有 10 項皆必填 — 完成後點「生成 」預覽，再點「上傳至 Google Drive」送出</p>
+          <p>所有 10 項皆必填 — 完成後點「生成 PDF」預覽，再點「上傳至 Google Drive」送出</p>
         </div>
       </div>
       <div class="card-bd">
@@ -363,10 +364,10 @@ tr:hover td{background:var(--surface-2)}
             <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
             返回
           </button>
-          <!-- Step A: 生成 （本地預覽+下載） -->
+          <!-- Step A: 生成 PDF（本地預覽+下載） -->
           <button class="btn btn-primary" id="btnGenPdf" onclick="generateAndPreview()">
             <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            生成  預覽
+            生成 PDF 預覽
           </button>
           <!-- Step B: 上傳至 Drive（生成後才出現） -->
           <button class="btn btn-success hidden" id="btnUpload" onclick="uploadToCloud()">
@@ -375,16 +376,16 @@ tr:hover td{background:var(--surface-2)}
           </button>
         </div>
 
-        <!--  預覽區（生成後顯示） -->
+        <!-- PDF 預覽區（生成後顯示） -->
         <div id="pdfPreviewArea" class="hidden" style="margin-top:18px;padding:16px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r)">
           <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
             <div>
-              <div style="font-size:.85rem;font-weight:600;color:var(--green)">✅  已生成，請確認後上傳</div>
+              <div style="font-size:.85rem;font-weight:600;color:var(--green)">✅ PDF 已生成，請確認後上傳</div>
               <div style="font-size:.76rem;color:var(--text-2);margin-top:3px" id="pdfFilename"></div>
             </div>
-            <button class="btn btn-download" onclick="download()">
+            <button class="btn btn-download" onclick="downloadPdf()">
               <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-              下載 
+              下載 PDF
             </button>
           </div>
         </div>
@@ -398,12 +399,12 @@ tr:hover td{background:var(--surface-2)}
       <div class="done-wrap">
         <div class="done-icon">✅</div>
         <div class="done-title">通報資料上傳成功</div>
-        <div class="done-sub"> 已儲存至 Google Drive，記錄已寫入 Google Sheets</div>
+        <div class="done-sub">PDF 已儲存至 Google Drive，記錄已寫入 Google Sheets</div>
         <div id="donePdfArea" style="margin-bottom:20px"></div>
         <div class="done-actions">
-          <button class="btn btn-download" id="btnDoneDownload" onclick="download()">
+          <button class="btn btn-download" id="btnDoneDownload" onclick="downloadPdf()">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-            下載 
+            下載 PDF
           </button>
           <button class="btn btn-primary" onclick="resetAll()">新增下一筆通報</button>
           <button class="btn btn-ghost" onclick="switchView('query')">查詢所有記錄</button>
@@ -485,7 +486,7 @@ const S = {
   dd: [],          // DROPDOWNDATA 完整資料
   files: {},       // 上傳檔案
   isManual: false,
-  pdfBase64: null, // 生成的  base64
+  pdfBase64: null, // 生成的 PDF base64
   pdfFilename: '',
 };
 
@@ -614,11 +615,11 @@ function buildUploadGrid() {
         <span class="req-tag">必填</span>
       </div>
       <div class="up-zone" onclick="triggerFile('${item.k}')">
-        <input type="file" id="fi_${item.k}" multiple accept="image/*,application/"
+        <input type="file" id="fi_${item.k}" multiple accept="image/*,application/pdf"
                onchange="onFile('${item.k}',this.files)">
         <div class="zi">📎</div>
         <div class="zt">拖放或點選上傳</div>
-        <div class="za">圖片 / （可多選）</div>
+        <div class="za">圖片 / PDF（可多選）</div>
       </div>
       <div class="previews" id="pv_${item.k}"></div>
     </div>
@@ -643,7 +644,7 @@ function onFile(k, fl) {
   renderPreviews(k);
   document.getElementById(`box_${k}`).classList.toggle('done', S.files[k].length > 0);
   document.getElementById(`box_${k}`).classList.remove('err');
-  // 如果已生成 ，需重新生成
+  // 如果已生成 PDF，需重新生成
   if (S.pdfBase64) {
     S.pdfBase64 = null;
     document.getElementById('pdfPreviewArea').classList.add('hidden');
@@ -718,7 +719,7 @@ function toPage1() {
 }
 
 // ════════════════════════════════════════════════
-// Step A：生成 （本地，可下載預覽）
+// Step A：生成 PDF（本地，可下載預覽）
 // ════════════════════════════════════════════════
 async function generateAndPreview() {
   // 驗證所有上傳項目
@@ -780,28 +781,14 @@ async function generateAndPreview() {
 }
 
 // ════════════════════════════════════════════════
-// PDF 下載（Blob URL，相容所有瀏覽器）
+// PDF 下載（本地）
 // ════════════════════════════════════════════════
 function downloadPdf() {
-  if (!S.pdfBase64) { toast('請先生成 PDF', 'warn'); return; }
-  try {
-    // base64 → Uint8Array → Blob → Object URL
-    const binary = atob(S.pdfBase64);
-    const bytes  = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    const blob   = new Blob([bytes], { type: 'application/pdf' });
-    const url    = URL.createObjectURL(blob);
-    const link   = document.createElement('a');
-    link.href     = url;
-    link.download = S.pdfFilename || 'report.pdf';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    // 釋放記憶體
-    setTimeout(() => URL.revokeObjectURL(url), 10000);
-  } catch(e) {
-    toast('下載失敗：' + e.message, 'err');
-  }
+  if (!S.pdfBase64) { toast('請先生成 PDF','warn'); return; }
+  const link = document.createElement('a');
+  link.href = `data:application/pdf;base64,${S.pdfBase64}`;
+  link.download = S.pdfFilename;
+  link.click();
 }
 
 // ════════════════════════════════════════════════
@@ -909,127 +896,146 @@ function clearQ() {
 }
 
 // ════════════════════════════════════════════════
-// PDF 生成（jsPDF 直接繪製，不依賴 html2canvas）
+// 載入中文字體至 jsPDF
+// ════════════════════════════════════════════════
+// ════════════════════════════════════════════════
+// 載入中文字體至 jsPDF
+// ════════════════════════════════════════════════
+async function loadChineseFont(doc) {
+  // 改用相容性極高的 Noto Sans TC (思源黑體) TTF 版本
+  const fontUrl = 'https://cdn.jsdelivr.net/npm/@electron-fonts/noto-sans-tc@1.2.0/fonts/NotoSansTC-Regular.ttf';
+  
+  const response = await fetch(fontUrl);
+  const blob = await response.blob();
+
+  // 將 TTF 檔案轉為 Base64 字串
+  const base64Font = await new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.readAsDataURL(blob);
+  });
+
+  // 註冊至 jsPDF 的虛擬檔案系統 (VFS)
+  doc.addFileToVFS('NotoSansTC.ttf', base64Font);
+  doc.addFont('NotoSansTC.ttf', 'NotoSansTC', 'normal');
+  doc.addFont('NotoSansTC.ttf', 'NotoSansTC', 'bold'); 
+}
+  
+// ════════════════════════════════════════════════
+// PDF 生成（jsPDF）
 // ════════════════════════════════════════════════
 async function buildPDF(fields, imageData) {
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-  const W = 210, H = 297, M = 14; // 頁寬、頁高、邊距
-  let y = M;
+  const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
 
-  // 超出頁面時自動換頁
-  const checkY = (need) => {
-    if (y + need > H - M) { doc.addPage(); y = M; }
+  // 載入字體
+  await loadChineseFont(doc);
+
+  const W=210, H=297, M=15;
+  let y = M;
+  
+  const checkY = need => { 
+    if (y+need > H-M) { 
+      doc.addPage();
+      doc.setFont('NotoSansTC','normal'); 
+      y=M; 
+    } 
   };
 
-  // ── 頁首色塊 ──
-  doc.setFillColor(41, 82, 200);
-  doc.rect(0, 0, W, 36, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(15); doc.setFont('helvetica', 'bold');
-  doc.text('Confined Space Work Notification', W / 2, 13, { align: 'center' });
-  doc.setFontSize(10); doc.setFont('helvetica', 'normal');
-  doc.text('局限空間作業通報書', W / 2, 21, { align: 'center' });
-  doc.setFontSize(7.5);
-  doc.text('Generated: ' + new Date().toLocaleString('zh-TW'), W / 2, 29, { align: 'center' });
-  y = 44;
+  // ── 封面標題 ──
+  doc.setFillColor(41,82,200); doc.rect(0,0,W,38,'F');
+  doc.setTextColor(255,255,255);
+  
+  // 改為全繁體中文標題
+  doc.setFontSize(16);
+  doc.setFont('NotoSansTC','bold');
+  doc.text('局限空間作業通報書', W/2, 18, {align:'center'});
+  
+  doc.setFontSize(9);
+  doc.setFont('NotoSansTC','normal');
+  doc.text(`產生時間：${new Date().toLocaleString('zh-TW')}`, W/2, 28, {align:'center'});
+  y = 46;
 
   // ── 基本資料表 ──
-  const infoRows = [
-    ['承攬商公司',     fields.company    || '—'],
-    ['工程名稱',       fields.project    || '—'],
-    ['主辦部門',       fields.dept       || '—'],
-    ['主辦課別',       fields.section    || '—'],
-    ['檢驗員姓名',     fields.inspector  || '—'],
-    ['開始時間',       (fields.startTime || '').replace('T', ' ')],
-    ['結束時間',       (fields.endTime   || '').replace('T', ' ')],
-    ['作業區域',       fields.workArea   || '—'],
-    ['作業詳細位置',   fields.workDetail || '—'],
+  const rows = [
+    ['公司', fields.company||'—'],
+    ['工程名稱', fields.project||'—'],
+    ['主辦部門', fields.dept||'—'],
+    ['主辦課別', fields.section||'—'],
+    ['檢驗員', fields.inspector||'—'],
+    ['開始時間', fields.startTime||'—'],
+    ['結束時間', fields.endTime||'—'],
+    ['作業區域', fields.workArea||'—'],
+    ['詳細位置', fields.workDetail||'—'],
   ];
 
   doc.setFontSize(9);
-  infoRows.forEach(([lbl, val], i) => {
+  rows.forEach(([lbl,val],i) => {
     checkY(10);
-    // 交替底色
-    doc.setFillColor(...(i % 2 === 0 ? [247, 248, 252] : [255, 255, 255]));
-    doc.rect(M, y - 5.5, W - M * 2, 9.5, 'F');
-    // 標籤
-    doc.setFont('helvetica', 'bold'); doc.setTextColor(70, 90, 140);
-    doc.text(lbl, M + 2, y);
-    // 值
-    doc.setFont('helvetica', 'normal'); doc.setTextColor(20, 20, 20);
-    // 長文字自動截斷
-    const maxW = W - M * 2 - 52;
-    const valStr = doc.splitTextToSize(String(val), maxW)[0] || '';
-    doc.text(valStr, M + 50, y);
-    y += 9.5;
+    doc.setFillColor(...(i%2===0?[247,248,252]:[255,255,255]));
+    doc.rect(M,y-5,W-M*2,9,'F');
+    
+    // 套用 NotoSansTC
+    doc.setFont('NotoSansTC','bold'); 
+    doc.setTextColor(80,100,140);
+    doc.text(lbl, M+2, y);
+    
+    doc.setFont('NotoSansTC','normal'); 
+    doc.setTextColor(20,20,20);
+    doc.text(String(val), M+55, y);
+    y += 9;
   });
 
-  y += 6;
-
-  // ── 各項目照片區塊 ──
+  // ── 各項目照片 ──
   for (const item of ITEMS) {
-    const allFiles = imageData[item.k] || [];
-    const imgs = allFiles.filter(d => d.type && d.type.startsWith('image/'));
-    const pdfs = allFiles.filter(d => d.type && !d.type.startsWith('image/'));
-    if (allFiles.length === 0) continue;
+    const imgs = (imageData[item.k]||[]).filter(d=>d.type.startsWith('image/'));
+    const pdfs = (imageData[item.k]||[]).filter(d=>!d.type.startsWith('image/'));
+    if (!imageData[item.k]?.length) continue;
 
-    // 區塊標題
-    checkY(14);
-    doc.setFillColor(41, 82, 200);
-    doc.rect(M, y - 4.5, W - M * 2, 8.5, 'F');
-    doc.setTextColor(255, 255, 255); doc.setFontSize(8.5); doc.setFont('helvetica', 'bold');
-    doc.text(item.label, M + 3, y + 0.5);
+    checkY(16);
+    doc.setFillColor(41,82,200); doc.rect(M,y-4,W-M*2,8,'F');
+    doc.setTextColor(255,255,255); doc.setFontSize(8.5); 
+    
+    // 解決相片標題亂碼：確實套用中文字型
+    doc.setFont('NotoSansTC','bold');
+    doc.text(item.label, M+3, y+0.5);
     y += 10;
 
-    // 圖片：每行 2 張
-    const imgW = (W - M * 2 - 6) / 2;
-    const imgH = imgW * 0.68;
+    const imgW = (W-M*2-5)/2, imgH = imgW*0.65;
     let col = 0;
-
     for (const d of imgs) {
-      checkY(imgH + 4);
-      const x = M + col * (imgW + 6);
+      checkY(imgH+4);
       try {
-        const fmt = d.type.includes('png') ? 'PNG' : 'JPEG';
-        doc.addImage(d.dataUrl, fmt, x, y, imgW, imgH);
-      } catch (e) {
-        // 圖片讀取失敗時顯示佔位框
-        doc.setDrawColor(200, 200, 200);
-        doc.rect(x, y, imgW, imgH);
-        doc.setFontSize(7); doc.setTextColor(160, 160, 160);
-        doc.text('Image error', x + imgW / 2, y + imgH / 2, { align: 'center' });
-      }
+        doc.addImage(d.dataUrl, d.type.includes('png')?'PNG':'JPEG', M+col*(imgW+5), y, imgW, imgH);
+      } catch(e) {}
       col++;
-      if (col >= 2) { col = 0; y += imgH + 4; }
+      if (col>=2) { col=0; y+=imgH+4; }
     }
-    if (col > 0) { y += imgH + 4; } // 補齊最後一行
+    if (col>0) y+=imgH+4;
 
-    // PDF 附件提示
     for (const d of pdfs) {
-      checkY(12);
-      doc.setFillColor(238, 242, 252);
-      doc.rect(M, y - 3, W - M * 2, 10, 'F');
-      doc.setTextColor(41, 82, 200); doc.setFontSize(8); doc.setFont('helvetica', 'normal');
-      doc.text('PDF attachment: ' + d.name, M + 3, y + 3.5);
-      y += 13;
+      checkY(14);
+      doc.setFillColor(238,242,252); doc.rect(M,y,W-M*2,12,'F');
+      doc.setTextColor(41,82,200); doc.setFontSize(8); doc.setFont('NotoSansTC','normal');
+      // 將附件前綴改成中文
+      doc.text(`PDF 附件：${d.name}`, M+4, y+7);
+      y += 15;
     }
-
-    y += 5;
+    y += 4;
   }
 
-  // ── 頁碼頁尾（每頁） ──
-  const totalPages = doc.internal.getNumberOfPages();
-  for (let p = 1; p <= totalPages; p++) {
+  // ── 頁碼頁尾 ──
+  const total = doc.internal.getNumberOfPages();
+  for (let p=1;p<=total;p++) {
     doc.setPage(p);
-    doc.setFontSize(7.5); doc.setTextColor(170, 170, 170); doc.setFont('helvetica', 'normal');
-    doc.setDrawColor(220, 220, 220);
-    doc.line(M, H - 10, W - M, H - 10);
-    doc.text(fields.project || '', M, H - 6);
-    doc.text(`Page ${p} / ${totalPages}`, W - M, H - 6, { align: 'right' });
+    doc.setFontSize(7.5);
+    doc.setTextColor(160,160,160); doc.setFont('NotoSansTC','normal');
+    doc.text(fields.project||'', M, H-8);
+    // 將頁尾頁碼改成中文
+    doc.text(`第 ${p} 頁 / 共 ${total} 頁`, W-M, H-8, {align:'right'});
+    doc.setDrawColor(220,220,220); doc.line(M,H-11,W-M,H-11);
   }
 
-  // 回傳 base64 字串（不含 data URI 前綴）
   return doc.output('datauristring').split(',')[1];
 }
 // ════════════════════════════════════════════════
