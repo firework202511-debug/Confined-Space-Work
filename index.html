@@ -898,11 +898,17 @@ function clearQ() {
 // PDF 生成（HTML 排版轉 PDF）
 // ════════════════════════════════════════════════
 async function buildPDF(fields, imageData) {
-  // 1. 建立一個隱藏的容器來放置 HTML 排版
   const container = document.createElement('div');
-  container.style.padding = '10px 20px';
+
+  // 🌟 關鍵修正 1：將元素隱藏在畫面外，並給定一個固定寬度，確保排版比例正確
+  container.style.position = 'absolute';
+  container.style.left = '-9999px';
+  container.style.top = '0';
+  container.style.width = '800px'; 
+  container.style.padding = '20px 40px';
   container.style.fontFamily = "'Noto Sans TC', sans-serif";
   container.style.color = '#141820';
+  container.style.backgroundColor = '#ffffff'; // 確保背景是白色
 
   // --- 封面與基本資料表格 ---
   let html = `
@@ -929,13 +935,11 @@ async function buildPDF(fields, imageData) {
     const pdfs = (imageData[item.k] || []).filter(d => !d.type.startsWith('image/'));
     if (imgs.length === 0 && pdfs.length === 0) continue;
 
-    // page-break-inside: avoid 確保照片區塊不會被不自然切斷
     html += `
       <div style="page-break-inside: avoid; margin-bottom: 20px;">
         <h3 style="background: #2952c8; color: white; padding: 8px 12px; margin: 0 0 10px 0; font-size: 16px; border-radius: 4px;">${item.label}</h3>
     `;
 
-    // 渲染照片 (同您提供的 img-container 邏輯)
     if (imgs.length > 0) {
       html += `<div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">`;
       for (const img of imgs) {
@@ -944,7 +948,6 @@ async function buildPDF(fields, imageData) {
       html += `</div>`;
     }
 
-    // 渲染 PDF 附件文字標示
     if (pdfs.length > 0) {
       for (const pdf of pdfs) {
         html += `<div style="background: #eef2fc; color: #2952c8; padding: 8px 12px; margin-bottom: 6px; border-radius: 4px; font-size: 14px; font-weight: bold;">📄 附加檔案（已與本單一併上傳）：${pdf.name}</div>`;
@@ -954,21 +957,30 @@ async function buildPDF(fields, imageData) {
   }
 
   container.innerHTML = html;
+  
+  // 🌟 關鍵修正 2：必須將容器實際加入網頁中，套件才能解析
+  document.body.appendChild(container);
 
-  // 2. 設定 html2pdf 選項
   const opt = {
-    margin:       10, // 邊距設定
+    margin:       10,
     filename:     'report.pdf',
     image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  { scale: 2, useCORS: true }, // scale: 2 可以確保畫面清晰
+    html2canvas:  { scale: 2, useCORS: true },
     jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
 
-  // 3. 呼叫 html2pdf 轉換並直接取得 Base64 字串供上傳 Drive 使用
-  const dataUri = await html2pdf().set(opt).from(container).outputPdf('datauristring');
-  
-  // 回傳逗號後方的純 Base64 字串
-  return dataUri.split(',')[1];
+  try {
+    const dataUri = await html2pdf().set(opt).from(container).outputPdf('datauristring');
+    
+    // 🌟 關鍵修正 3：成功生成後，將隱藏的容器清理掉
+    document.body.removeChild(container);
+    return dataUri.split(',')[1];
+    
+  } catch (error) {
+    // 若發生錯誤也要記得清理容器，避免殘留在畫面外
+    document.body.removeChild(container);
+    throw error;
+  }
 }
 // ════════════════════════════════════════════════
 // 工具函式
