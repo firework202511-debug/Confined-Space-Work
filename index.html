@@ -621,7 +621,7 @@ async function exportPDF() {
     }
 
     html += `</div></body></html>`;
-   G_PDF_HTML = htmlContent; // 存入全域變數供 manualPrint 使用
+   G_PDF_HTML = html; // 存入全域變數供 manualPrint 使用
     ovStep('p2', 'done'); 
     hideOv(); 
 
