@@ -407,7 +407,7 @@ tr:hover td{background:var(--surface-2)}
 // ════════════════════════════════════════════════
 // ★ 配置與狀態 [cite: 31, 32, 33]
 // ════════════════════════════════════════════════
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxUPvx8ljoMnAloW6YVduF6rvuoquwa_tgFjjukqEPnoCvNhur2PGbx4yZqUdw8BWhqmQ/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyIs5IHEF7tmlNbl5qXT6D-NSzAc3BtHnXnVXjexSuKSZEV0u3W5L9ccxffN3vISj-pmw/exec';
 
 const ITEMS = [
   { k:'kaohsiung',   label:'高市檢申報擷取畫面' },
@@ -505,6 +505,20 @@ function buildUploadGrid() {
       <div class="previews" id="pv_${item.k}"></div>
     </div>
   `).join('');
+}
+
+  function onDragOver(e) {
+  e.preventDefault(); // 必須阻擋預設行為，否則 drop 不會觸發
+  e.stopPropagation();
+}
+
+function onDrop(e, k) {
+  e.preventDefault();
+  e.stopPropagation();
+  const files = e.dataTransfer.files;
+  if (files.length > 0) {
+    onFile(k, files); // 複用原本的處理邏輯
+  }
 }
 
 function triggerFile(k) { document.getElementById(`fi_${k}`).click(); }
@@ -613,30 +627,69 @@ async function exportPDF() {
     }
 
     html += `</div></body></html>`;
-    ovStep('p2', 'done'); hideOv();
+   G_PDF_HTML = htmlContent; // 存入全域變數供 manualPrint 使用
+    ovStep('p2', 'done'); [cite: 114]
+    hideOv(); [cite: 114]
 
-    const printWin = window.open('', '_blank');
-    printWin.document.write(html);
-    printWin.document.close();
+    // 顯示預覽區域而非自動彈出視窗
+    const previewArea = document.getElementById('pdfPreviewArea');
+    previewArea.classList.remove('hidden'); [cite: 115]
+    previewArea.innerHTML = `
+      <div style="padding:15px; background:#fff; border:1px solid #ccc; border-radius:8px; margin-bottom:10px;">
+        <p style="color:var(--green); font-weight:600;">✅ 報表內容已備妥</p>
+        <p style="font-size:13px; color:var(--text-2);">請先點擊下方按鈕預覽並「另存為 PDF」，確認無誤後再點擊「上傳至雲端硬碟」。</p>
+      </div>
+      <button class="btn btn-download" onclick="manualPrint()">點此開啟預覽並列印</button>
+    `;
+    
+    document.getElementById('btnUpload').classList.remove('hidden'); [cite: 115]
+    toast('預覽稿已生成，請點擊預覽按鈕', 'ok'); [cite: 115]
 
-    setTimeout(() => {
-      printWin.focus(); printWin.print();
-      document.getElementById('pdfPreviewArea').classList.remove('hidden');
-      document.getElementById('btnUpload').classList.remove('hidden');
-      toast('報表已生成，請另存為 PDF','ok');
-    }, 800);
-  } catch(e) { hideOv(); toast('生成失敗','err'); }
+  } catch (e) {
+    hideOv(); [cite: 115]
+    toast('生成失敗', 'err'); [cite: 115]
+  }
 }
 
+// 供按鈕點擊後才觸發列印視窗
+function manualPrint() {
+  if (!G_PDF_HTML) return toast('請先生成報表', 'err');
+  const printWin = window.open('', '_blank');
+  printWin.document.write(G_PDF_HTML);
+  printWin.document.close();
+  setTimeout(() => {
+    printWin.focus();
+    printWin.print();
+  }, 500);
+}
 // 上傳至雲端 [cite: 88, 89]
 async function uploadToCloud() {
-  const f = getFields();
-  showOv('上傳中...','資料寫入 Google Sheets',[{id:'u1',label:'雲端作業'}]);
+const f = getFields();
+  showOv('上傳中...', '正在處理 PDF 並寫入紀錄', [{id:'u1', label:'雲端同步中'}]);
+  
   try {
-    ovStep('u1','active');
-    await gasPost({ action: 'submit', fields: f });
-    ovStep('u1','done'); hideOv(); showDone(); toast('通報成功','ok');
-  } catch(e) { hideOv(); toast('上傳失敗','err'); }
+    ovStep('u1', 'active');
+    
+    // 必須將 PDF 內容轉換為 Base64 (可利用隱藏的 Canvas 或從 HTML 字串轉，此處假設您要上傳的是報表 HTML 字串)
+    // 由於 Apps Script 直接轉 PDF 較複雜，建議上傳 HTML 內容或維持原本流程
+    const payload = {
+      action: 'submit',
+      fields: f,
+      pdfBase64: btoa(unescape(encodeURIComponent(G_PDF_HTML))), // 簡單將 HTML 轉 B64
+      pdfFilename: `局限作業_${f.company}_${f.inspector}.html`
+    };
+
+    const res = await gasPost(payload);
+    if (res.error) throw new Error(res.error);
+
+    ovStep('u1', 'done'); 
+    hideOv(); 
+    showDone(); 
+    toast('通報成功', 'ok');
+  } catch(e) { 
+    hideOv(); 
+    toast('上傳失敗：' + e.message, 'err'); 
+  }
 }
 
 // 查詢邏輯 [cite: 95, 96]
