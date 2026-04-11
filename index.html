@@ -633,8 +633,7 @@ async function exportPDF() {
 
     // 顯示預覽區域而非自動彈出視窗
     const previewArea = document.getElementById('pdfPreviewArea');
-    previewArea.classList.remove('hidden'); [cite: 115]
-    previewArea.innerHTML = `
+    previewArea.classList.remove('hidden'); 
       <div style="padding:15px; background:#fff; border:1px solid #ccc; border-radius:8px; margin-bottom:10px;">
         <p style="color:var(--green); font-weight:600;">✅ 報表內容已備妥</p>
         <p style="font-size:13px; color:var(--text-2);">請先點擊下方按鈕預覽並「另存為 PDF」，確認無誤後再點擊「上傳至雲端硬碟」。</p>
@@ -642,12 +641,12 @@ async function exportPDF() {
       <button class="btn btn-download" onclick="manualPrint()">點此開啟預覽並列印</button>
     `;
     
-    document.getElementById('btnUpload').classList.remove('hidden'); [cite: 115]
-    toast('預覽稿已生成，請點擊預覽按鈕', 'ok'); [cite: 115]
+    document.getElementById('btnUpload').classList.remove('hidden'); 
+    toast('預覽稿已生成，請點擊預覽按鈕', 'ok'); 
 
   } catch (e) {
-    hideOv(); [cite: 115]
-    toast('生成失敗', 'err'); [cite: 115]
+    hideOv(); 
+    toast('生成失敗', 'err'); 
   }
 }
 
@@ -662,7 +661,7 @@ function manualPrint() {
     printWin.print();
   }, 500);
 }
-// 上傳至雲端 [cite: 88, 89]
+// 上傳至雲端 
 async function uploadToCloud() {
 const f = getFields();
   showOv('上傳中...', '正在處理 PDF 並寫入紀錄', [{id:'u1', label:'雲端同步中'}]);
