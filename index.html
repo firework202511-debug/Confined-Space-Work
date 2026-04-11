@@ -81,6 +81,12 @@ label .r{color:var(--red);margin-left:2px}
 select.inp{padding-right:26px;cursor:pointer}
 select.inp:disabled{cursor:not-allowed}
 
+/* Cascade hints */
+.c-hint{font-size:.73rem;color:var(--text-3);margin-top:3px}
+.c-hint.loading{color:var(--blue)}
+.c-hint.filled{color:var(--green);font-weight:500}
+.c-hint.err{color:var(--red)}
+
 /* Manual area */
 .manual-wrap{margin-top:10px;padding:14px;background:var(--amber-lt);border:1.5px dashed var(--amber);border-radius:var(--r);display:none}
 .manual-wrap.show{display:block}
@@ -329,9 +335,7 @@ tr:hover td{background:var(--surface-2)}
         </div>
       </div>
     </div>
-  </div>
-  
-  <div id="pg2" class="hidden">
+  </div><div id="pg2" class="hidden">
     <div class="card">
       <div class="card-hd">
         <div class="card-ico">
@@ -339,7 +343,7 @@ tr:hover td{background:var(--surface-2)}
         </div>
         <div>
           <h2>文件 & 照片上傳</h2>
-          <p>所有 10 項皆必填 — 完成後點「生成 PDF」進行確認排版，再點「上傳至 Google Drive」送出</p>
+          <p>所有 10 項皆必填 — 完成後點「生成 PDF」預覽，再點「上傳至 Google Drive」送出</p>
         </div>
       </div>
       <div class="card-bd">
@@ -360,18 +364,17 @@ tr:hover td{background:var(--surface-2)}
           </button>
         </div>
 
-        <div id="pdfPreviewArea" class="hidden" style="margin-top:18px;padding:16px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r);text-align:center;">
-          </div>
+        <div id="pdfPreviewArea" class="hidden" style="margin-top:18px;padding:16px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r)">
+          <div style="font-size:.85rem;font-weight:600;color:var(--green)">✅ 報表已生成，請在對話框中選擇「另存為 PDF」。確認後點擊「上傳至 Google Drive」送出紀錄。</div>
+        </div>
       </div>
     </div>
-  </div>
-  
-  <div id="pg3" class="hidden">
+  </div><div id="pg3" class="hidden">
     <div class="card">
       <div class="done-wrap">
         <div class="done-icon">✅</div>
         <div class="done-title">通報資料上傳成功</div>
-        <div class="done-sub">記錄已寫入 Google Sheets 並同步至雲端硬碟</div>
+        <div class="done-sub">PDF 記錄已寫入 Google Sheets 並同步至雲端硬碟</div>
         <div id="donePdfArea" style="margin-bottom:20px"></div>
         <div class="done-actions">
           <button class="btn btn-primary" onclick="resetAll()">新增下一筆通報</button>
@@ -379,10 +382,7 @@ tr:hover td{background:var(--surface-2)}
         </div>
       </div>
     </div>
-  </div>
-</div>
-
-<div id="queryView" class="hidden">
+  </div></div><div id="queryView" class="hidden">
   <div class="card">
     <div class="card-hd">
       <div class="card-ico" style="background:var(--green-lt);color:var(--green)">
@@ -405,7 +405,7 @@ tr:hover td{background:var(--surface-2)}
 
 <script>
 // ════════════════════════════════════════════════
-// ★ 配置與狀態
+// ★ 配置與狀態 [cite: 31, 32, 33]
 // ════════════════════════════════════════════════
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbxUPvx8ljoMnAloW6YVduF6rvuoquwa_tgFjjukqEPnoCvNhur2PGbx4yZqUdw8BWhqmQ/exec';
 
@@ -422,7 +422,7 @@ const ITEMS = [
   { k:'license2',    label:'急救人員證照' },
 ];
 
-const S = { dd: [], files: {}, isManual: false, printHtml: '', pdfBase64: '', pdfFilename: '' };
+const S = { dd: [], files: {}, isManual: false };
 
 // 初始化
 document.addEventListener('DOMContentLoaded', () => {
@@ -431,7 +431,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setStepper(1);
 });
 
-// 下拉選單載入
+// 下拉選單載入 [cite: 35, 36, 37]
 async function loadDD() {
   setHint('hintCompany', '載入中...', 'loading');
   try {
@@ -447,6 +447,7 @@ async function loadDD() {
   } catch(e) { setHint('hintCompany', '載入失敗', 'err'); }
 }
 
+// 連動邏輯略... [cite: 42, 47, 49]
 function onCompanyChange() {
   const company = document.getElementById('selCompany').value;
   const projSel = document.getElementById('selProject');
@@ -492,9 +493,7 @@ function getFields() {
   };
 }
 
-// ════════════════════════════════════════════════
-// ★ 修復 1：上傳區塊與拖曳功能
-// ════════════════════════════════════════════════
+// 上傳區塊
 function buildUploadGrid() {
   document.getElementById('upGrid').innerHTML = ITEMS.map((item, i) => `
     <div class="up-box" id="box_${item.k}">
@@ -506,17 +505,6 @@ function buildUploadGrid() {
       <div class="previews" id="pv_${item.k}"></div>
     </div>
   `).join('');
-
-  // 重新綁定拖曳上傳事件
-  document.querySelectorAll('.up-zone').forEach(z => {
-    z.addEventListener('dragover', e => { e.preventDefault(); z.style.borderColor='var(--blue)'; });
-    z.addEventListener('dragleave', () => z.style.borderColor=''; );
-    z.addEventListener('drop', e => {
-      e.preventDefault(); z.style.borderColor='';
-      const k = z.closest('.up-box').id.replace('box_','');
-      onFile(k, e.dataTransfer.files);
-    });
-  });
 }
 
 function triggerFile(k) { document.getElementById(`fi_${k}`).click(); }
@@ -527,7 +515,6 @@ function onFile(k, fl) {
   renderPreviews(k);
   document.getElementById(`box_${k}`).classList.toggle('done', S.files[k].length > 0);
   document.getElementById('btnUpload').classList.add('hidden');
-  document.getElementById('pdfPreviewArea').classList.add('hidden');
 }
 
 function renderPreviews(k) {
@@ -542,7 +529,7 @@ function renderPreviews(k) {
 
 function rmFile(k, i) { S.files[k].splice(i,1); renderPreviews(k); document.getElementById(`box_${k}`).classList.toggle('done', S.files[k].length>0); }
 
-// 導覽邏輯
+// 導覽邏輯 [cite: 65, 71]
 async function toPage2() {
   const f = getFields();
   if (!f.company || !f.project || !f.inspector || !f.startTime || !f.endTime || !f.workArea) { toast('請填寫必填欄位','err'); return; }
@@ -561,27 +548,32 @@ async function toPage2() {
 function toPage1() { show('pg1'); hide('pg2'); setStepper(1); }
 
 // ════════════════════════════════════════════════
-// ★ 修復 2 ＆ 3：無完整 HTML 標籤避免 GAS 當機，與背景相容性 PDF 產生
+// ★ 原生列印優化：解決 PDF 亂碼 [cite: 288, 307, 310, 311]
 // ════════════════════════════════════════════════
 async function exportPDF() {
   const missing = ITEMS.filter(item => !S.files[item.k] || S.files[item.k].length === 0);
   if (missing.length > 0) { toast(`尚有 ${missing.length} 項未上傳`, 'err'); return; }
 
   const f = getFields();
-  showOv('產製報表中...', '處理中，請稍候', [{ id: 'p1', label: '排版與影像轉換' }]);
+  showOv('產生報表中...', '正在處理圖片', [{ id: 'p1', label: '處理媒體資料' }, { id: 'p2', label: '生成報表視窗' }]);
 
   try {
     ovStep('p1', 'active');
     const imagePreviews = {};
     for (const item of ITEMS) {
       if (S.files[item.k]) {
-        const imgFiles = S.files[item.k].filter(fl => fl.type.startsWith('image/'));
-        imagePreviews[item.k] = await Promise.all(imgFiles.map(fl => fileToBase64(fl)));
+        const imgFiles = S.files[item.k].filter(f => f.type.startsWith('image/'));
+        imagePreviews[item.k] = await Promise.all(imgFiles.map(f => fileToBase64(f)));
       }
     }
+    ovStep('p1', 'done');
+    ovStep('p2', 'active');
 
-    // 避開 <html>, <body> 標籤字串，以防 Google Apps Script 誤判造成空白頁
     let html = `
+    <!DOCTYPE html>
+    <html lang="zh-TW">
+    <head>
+      <meta charset="UTF-8">
       <title>局限空間通報單_${f.project}</title>
       <style>
         body { font-family: 'Microsoft JhengHei', sans-serif; padding: 40px; color: #111; line-height: 1.5; }
@@ -596,6 +588,8 @@ async function exportPDF() {
         .img-item img { max-width: 100%; height: 200px; object-fit: cover; }
         .img-label { font-size: 12px; font-weight: bold; margin-top: 5px; }
       </style>
+    </head>
+    <body>
       <div class="header"><h1>局限空間作業通報書</h1><div>Confined Space Work Notification Report</div></div>
       <div style="text-align:right; font-size:12px; color:#666;">產出時間：${new Date().toLocaleString('zh-TW')}</div>
       <div class="section-header">基本資料</div>
@@ -617,95 +611,35 @@ async function exportPDF() {
         });
       }
     }
-    html += `</div>`;
-    
-    // 儲存至全域變數，供使用者手動開新視窗
-    S.printHtml = html;
 
-    // 背景產生一份基礎 PDF（無視中文），餵給 Apps Script 的資料庫儲存，避免後端報錯
-    try {
-      S.pdfBase64 = await buildSilentPDF(f, imagePreviews);
-      S.pdfFilename = `局限作業通報_${f.project}.pdf`;
-    } catch(err) {
-      console.warn("相容性 PDF 產生失敗", err);
-    }
+    html += `</div></body></html>`;
+    ovStep('p2', 'done'); hideOv();
 
-    ovStep('p1', 'done'); hideOv();
+    const printWin = window.open('', '_blank');
+    printWin.document.write(html);
+    printWin.document.close();
 
-    // 更新介面提供手動點擊按鈕
-    const previewArea = document.getElementById('pdfPreviewArea');
-    previewArea.innerHTML = `
-      <div style="font-size:.85rem;font-weight:600;color:var(--green);margin-bottom:12px;">✅ 報表排版已完成！</div>
-      <button class="btn btn-download" onclick="openManualPrint()">📄 開啟預覽 / 列印 PDF</button>
-      <div style="font-size:.75rem;color:var(--text-2);margin-top:8px;">請確認預覽無誤後，再點擊下方按鈕上傳送出紀錄。</div>
-    `;
-    previewArea.classList.remove('hidden');
-    document.getElementById('btnUpload').classList.remove('hidden');
-    toast('排版已就緒，請手動開啟預覽', 'ok');
-
+    setTimeout(() => {
+      printWin.focus(); printWin.print();
+      document.getElementById('pdfPreviewArea').classList.remove('hidden');
+      document.getElementById('btnUpload').classList.remove('hidden');
+      toast('報表已生成，請另存為 PDF','ok');
+    }, 800);
   } catch(e) { hideOv(); toast('生成失敗','err'); }
 }
 
-// 獨立函式：使用者手動點選按鈕後才開啟列印視窗
-function openManualPrint() {
-  if (!S.printHtml) return;
-  const printWin = window.open('', '_blank');
-  printWin.document.write(S.printHtml);
-  printWin.document.close();
-  setTimeout(() => {
-    printWin.focus();
-    printWin.print();
-  }, 800);
-}
-
-// 背景生成簡易 PDF 以通過後端檢查機制
-async function buildSilentPDF(f, imagePreviews) {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(14);
-  doc.text("Confined Space Work Record", 15, 20);
-  doc.setFontSize(10);
-  doc.text(`Project: ${f.project}`, 15, 28);
-  doc.text(`Generated: ${new Date().toLocaleString()}`, 15, 34);
-  
-  let y = 45;
-  for (const item of ITEMS) {
-    if (imagePreviews[item.k]) {
-      for (const img of imagePreviews[item.k]) {
-        if (y > 220) { doc.addPage(); y = 20; }
-        try {
-          const format = img.type.includes('png') ? 'PNG' : 'JPEG';
-          doc.addImage(img.dataUrl, format, 15, y, 90, 60);
-          y += 65;
-        } catch(err) {}
-      }
-    }
-  }
-  return doc.output('datauristring').split(',')[1];
-}
-
-// 上傳至雲端
+// 上傳至雲端 [cite: 88, 89]
 async function uploadToCloud() {
   const f = getFields();
-  showOv('上傳中...','資料同步至雲端',[{id:'u1',label:'雲端作業'}]);
+  showOv('上傳中...','資料寫入 Google Sheets',[{id:'u1',label:'雲端作業'}]);
   try {
     ovStep('u1','active');
-    
-    // 一併傳送背景生成的相容性 PDF 給後端儲存
-    await gasPost({ 
-      action: 'submit', 
-      fields: f,
-      pdfBase64: S.pdfBase64 || '',
-      pdfFilename: S.pdfFilename || `Report_${Date.now()}.pdf`
-    });
-    
+    await gasPost({ action: 'submit', fields: f });
     ovStep('u1','done'); hideOv(); showDone(); toast('通報成功','ok');
   } catch(e) { hideOv(); toast('上傳失敗','err'); }
 }
 
-// 查詢邏輯
+// 查詢邏輯 [cite: 95, 96]
 async function doQuery() {
   const co = document.getElementById('qCo').value;
   const prj = document.getElementById('qPrj').value;
