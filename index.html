@@ -710,10 +710,48 @@ async function doQuery() {
 
 function renderResults(rows) {
   const el = document.getElementById('qResults');
-  if (!rows || !rows.length) { el.innerHTML = '<div class="empty">查無符合條件記錄</div>'; return; }
-  el.innerHTML = `<table><thead><tr><th>公司</th><th>工程</th><th>檢驗員</th><th>作業地點</th><th>開始</th><th>結束</th></tr></thead><tbody>
-    ${rows.map(r => `<tr><td>${r.company}</td><td>${r.project}</td><td>${r.inspector}</td><td>${r.workArea}</td><td class="mono">${r.startTime.replace('T',' ')}</td><td class="mono">${r.endTime.replace('T',' ')}</td></tr>`).join('')}
-  </tbody></table>`;
+  if (!rows || !rows.length) { 
+    el.innerHTML = '<div class="empty">查無符合條件記錄</div>'; 
+    return;
+  }
+  
+  el.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>公司</th>
+          <th>工程</th>
+          <th>檢驗員</th>
+          <th>作業地點</th>
+          <th>開始</th>
+          <th>結束</th>
+          <th>通報紀錄</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows.map(r => {
+          // 判斷是否有 PDF 連結
+          const hasPdf = r.pdfUrl && r.pdfUrl.startsWith('http');
+          const pdfLink = hasPdf 
+            ? `<a href="${r.pdfUrl}" target="_blank" class="pdf-btn">
+                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                 查看 PDF
+               </a>` 
+            : `<span style="color:var(--text-3);font-size:.76rem;">無檔案</span>`;
+
+          return `
+            <tr>
+              <td>${r.company}</td>
+              <td>${r.project}</td>
+              <td>${r.inspector}</td>
+              <td>${r.workArea}</td>
+              <td class="mono">${r.startTime.replace('T',' ')}</td>
+              <td class="mono">${r.endTime.replace('T',' ')}</td>
+              <td>${pdfLink}</td>
+            </tr>`;
+        }).join('')}
+      </tbody>
+    </table>`;
 }
 
 // 公用工具
