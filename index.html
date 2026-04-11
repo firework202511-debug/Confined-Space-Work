@@ -322,9 +322,9 @@ tr:hover td{background:var(--surface-2)}
             <input type="text" class="inp" id="fArea" placeholder="例：廠區 A 棟">
           </div>
           <div class="fg">
-            <label>作業詳細位置</label>
-            <input type="text" class="inp" id="fDetail" placeholder="例：B1 管道間 H-3">
-          </div>
+          <label>作業詳細位置<span class="r">*</span></label>
+          <input type="text" class="inp" id="fDetail" placeholder="例：B1 管道間 H-3">
+        </div>
         </div>
 
         <div class="btn-row">
@@ -501,8 +501,8 @@ function buildUploadGrid() {
          ondrop="onDrop(event, '${item.k}')">
       <div class="up-lbl"><span class="up-num">${i+1}</span>${item.label}<span class="req-tag">必填</span></div>
       <div class="up-zone" onclick="triggerFile('${item.k}')">
-        <input type="file" id="fi_${item.k}" multiple accept="image/*,application/pdf" onchange="onFile('${item.k}',this.files)">
-        <div class="zi">📎</div><div class="zt">拖放或點選</div><div class="za">圖片/PDF</div>
+        <input type="file" id="fi_${item.k}" multiple accept="image/*" onchange="onFile('${item.k}',this.files)">
+        <div class="zi">📎</div><div class="zt">拖放或點選</div><div class="za">僅限圖片檔</div>
       </div>
       <div class="previews" id="pv_${item.k}"></div>
     </div>
@@ -540,7 +540,9 @@ function rmFile(k, i) { S.files[k].splice(i,1); renderPreviews(k); document.getE
 // 導覽邏輯 [cite: 65, 71]
 async function toPage2() {
   const f = getFields();
-  if (!f.company || !f.project || !f.inspector || !f.startTime || !f.endTime || !f.workArea) { toast('請填寫必填欄位','err'); return; }
+  if (!f.company || !f.project || !f.inspector || !f.startTime || !f.endTime || !f.workArea || !f.workDetail) { 
+    toast('請填寫必填欄位','err'); 
+    return; }
   if (S.isManual) {
     showOv('儲存中...','更新選單資料',[]);
     try {
@@ -723,6 +725,7 @@ function renderResults(rows) {
           <th>工程</th>
           <th>檢驗員</th>
           <th>作業地點</th>
+          <th>詳細位置</th> 
           <th>開始</th>
           <th>結束</th>
           <th>通報紀錄</th>
@@ -730,7 +733,6 @@ function renderResults(rows) {
       </thead>
       <tbody>
         ${rows.map(r => {
-          // 判斷是否有 PDF 連結
           const hasPdf = r.pdfUrl && r.pdfUrl.startsWith('http');
           const pdfLink = hasPdf 
             ? `<a href="${r.pdfUrl}" target="_blank" class="pdf-btn">
@@ -745,7 +747,7 @@ function renderResults(rows) {
               <td>${r.project}</td>
               <td>${r.inspector}</td>
               <td>${r.workArea}</td>
-              <td class="mono">${r.startTime.replace('T',' ')}</td>
+              <td>${r.workDetail || '—'}</td> <td class="mono">${r.startTime.replace('T',' ')}</td>
               <td class="mono">${r.endTime.replace('T',' ')}</td>
               <td>${pdfLink}</td>
             </tr>`;
