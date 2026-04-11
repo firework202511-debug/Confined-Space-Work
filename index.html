@@ -496,7 +496,9 @@ function getFields() {
 // 上傳區塊
 function buildUploadGrid() {
   document.getElementById('upGrid').innerHTML = ITEMS.map((item, i) => `
-    <div class="up-box" id="box_${item.k}">
+    <div class="up-box" id="box_${item.k}" 
+         ondragover="onDragOver(event)" 
+         ondrop="onDrop(event, '${item.k}')">
       <div class="up-lbl"><span class="up-num">${i+1}</span>${item.label}<span class="req-tag">必填</span></div>
       <div class="up-zone" onclick="triggerFile('${item.k}')">
         <input type="file" id="fi_${item.k}" multiple accept="image/*,application/pdf" onchange="onFile('${item.k}',this.files)">
@@ -507,28 +509,20 @@ function buildUploadGrid() {
   `).join('');
 }
 
-  function onDragOver(e) {
-  e.preventDefault(); // 必須阻擋預設行為，否則 drop 不會觸發
-  e.stopPropagation();
-}
-
+function onDragOver(e) { e.preventDefault(); e.stopPropagation(); }
 function onDrop(e, k) {
-  e.preventDefault();
-  e.stopPropagation();
+  e.preventDefault(); e.stopPropagation();
   const files = e.dataTransfer.files;
-  if (files.length > 0) {
-    onFile(k, files); // 複用原本的處理邏輯
-  }
+  if (files.length > 0) onFile(k, files);
 }
 
 function triggerFile(k) { document.getElementById(`fi_${k}`).click(); }
-
 function onFile(k, fl) {
   if (!S.files[k]) S.files[k] = [];
   Array.from(fl).forEach(f => S.files[k].push(f));
   renderPreviews(k);
   document.getElementById(`box_${k}`).classList.toggle('done', S.files[k].length > 0);
-  document.getElementById('btnUpload').classList.add('hidden');
+  document.getElementById('btnUpload').classList.add('hidden'); // 重新選圖後隱藏上傳鈕，要求重新生成PDF
 }
 
 function renderPreviews(k) {
@@ -631,55 +625,46 @@ async function exportPDF() {
     ovStep('p2', 'done'); 
     hideOv(); 
 
-    // 顯示預覽區域而非自動彈出視窗
+    // 顯示預覽區域 (修正原代碼語法錯誤，使用反引號 `` 包裹 HTML)
     const previewArea = document.getElementById('pdfPreviewArea');
-    previewArea.classList.remove('hidden'); 
+    previewArea.classList.remove('hidden');
+    previewArea.innerHTML = `
       <div style="padding:15px; background:#fff; border:1px solid #ccc; border-radius:8px; margin-bottom:10px;">
         <p style="color:var(--green); font-weight:600;">✅ 報表內容已備妥</p>
-        <p style="font-size:13px; color:var(--text-2);">請先點擊下方按鈕預覽並「另存為 PDF」，確認無誤後再點擊「上傳至雲端硬碟」。</p>
+        <p style="font-size:13px; color:var(--text-2);">請先點擊下方按鈕預覽並「另存為 PDF」，確認後再點擊「上傳至雲端硬碟」。</p>
       </div>
       <button class="btn btn-download" onclick="manualPrint()">點此開啟預覽並列印</button>
     `;
     
-    document.getElementById('btnUpload').classList.remove('hidden'); 
-    toast('預覽稿已生成，請點擊預覽按鈕', 'ok'); 
-
-  } catch (e) {
-    hideOv(); 
-    toast('生成失敗', 'err'); 
-  }
+    document.getElementById('btnUpload').classList.remove('hidden');
+    toast('預覽稿已生成，請手動點擊預覽按鈕', 'ok');
+  } catch(e) { hideOv(); toast('生成失敗','err'); }
 }
 
-// 供按鈕點擊後才觸發列印視窗
 function manualPrint() {
-  if (!G_PDF_HTML) return toast('請先生成報表', 'err');
   const printWin = window.open('', '_blank');
   printWin.document.write(G_PDF_HTML);
   printWin.document.close();
-  setTimeout(() => {
-    printWin.focus();
-    printWin.print();
-  }, 500);
+  setTimeout(() => { printWin.focus(); printWin.print(); }, 500);
 }
 // 上傳至雲端 
 async function uploadToCloud() {
-const f = getFields();
-  showOv('上傳中...', '正在處理 PDF 並寫入紀錄', [{id:'u1', label:'雲端同步中'}]);
+  const f = getFields();
+  showOv('上傳中...', '寫入 Google Sheets', [{id:'u1', label:'雲端作業'}]);
   
   try {
     ovStep('u1', 'active');
     
-    // 必須將 PDF 內容轉換為 Base64 (可利用隱藏的 Canvas 或從 HTML 字串轉，此處假設您要上傳的是報表 HTML 字串)
-    // 由於 Apps Script 直接轉 PDF 較複雜，建議上傳 HTML 內容或維持原本流程
+    // 確保 payload 包含 pdfBase64 欄位
     const payload = {
       action: 'submit',
       fields: f,
-      pdfBase64: btoa(unescape(encodeURIComponent(G_PDF_HTML))), // 簡單將 HTML 轉 B64
-      pdfFilename: `局限作業_${f.company}_${f.inspector}.html`
+      pdfBase64: btoa(unescape(encodeURIComponent(G_PDF_HTML))), // 將 HTML 字串編碼為 B64
+      pdfFilename: `局限作業_${f.company}_${f.inspector}.pdf`
     };
 
     const res = await gasPost(payload);
-    if (res.error) throw new Error(res.error);
+    if(res.error) throw new Error(res.error);
 
     ovStep('u1', 'done'); 
     hideOv(); 
@@ -687,8 +672,24 @@ const f = getFields();
     toast('通報成功', 'ok');
   } catch(e) { 
     hideOv(); 
-    toast('上傳失敗：' + e.message, 'err'); 
+    toast('上傳失敗: ' + e.message, 'err'); 
   }
+}
+
+// 輔助函式 [cite: 124, 125, 126]
+async function gasPost(payload) { 
+  return fetch(GAS_URL, { 
+    method: 'POST', 
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
+    body: JSON.stringify(payload) 
+  }).then(r=>r.json());
+}
+function fileToBase64(file) { 
+  return new Promise((res,rej) => { 
+    const r = new FileReader(); 
+    r.onload = e => res({ dataUrl:e.target.result, type:file.type, name:file.name }); 
+    r.readAsDataURL(file); 
+  }); 
 }
 
 // 查詢邏輯 [cite: 95, 96]
