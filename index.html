@@ -294,62 +294,13 @@ tr:hover td{background:var(--surface-2)}
           <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         </div>
         <div>
-          <h2>選擇上傳時機點</h2>
-          <p>請依照目前作業狀態，選擇對應的通報階段</p>
-        </div>
-      </div>
-      <div class="card-bd">
-        <div class="phase-grid">
-          <div class="phase-card before-phase" id="phaseCard_before" onclick="selectPhase('before')">
-            <div class="phase-icon">📋</div>
-            <div class="phase-title">作業前</div>
-            <div class="phase-desc">填寫基本資料、作業人員、地點，上傳入場前所需文件與照片</div>
-            <div class="phase-badge">▶ 作業前通報</div>
-          </div>
-          <div class="phase-card mid-phase" id="phaseCard_mid" onclick="selectPhase('mid')">
-            <div class="phase-icon">🎥</div>
-            <div class="phase-title">作業中</div>
-            <div class="phase-desc">上傳 CCTV 監看螢幕畫面及人員進出管制表</div>
-            <div class="phase-badge">▶ 作業中通報</div>
-          </div>
-          <div class="phase-card after-phase" id="phaseCard_after" onclick="selectPhase('after')">
-            <div class="phase-icon">✅</div>
-            <div class="phase-title">作業後</div>
-            <div class="phase-desc">上傳人員進出管制表及現場結束後狀況照片</div>
-            <div class="phase-badge">▶ 作業後通報</div>
-          </div>
-        </div>
-        <div class="phase-proceed">
-          <button class="btn btn-primary" id="btnPhaseNext" onclick="proceedFromPhase()" disabled>
-            進入通報頁面
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── PAGE 1 (BEFORE): Basic Info ───────────── -->
-  <div id="pg1" class="hidden">
-    <div class="stepper phase-before" id="stepper1">
-      <div class="st on" id="st1"><div class="st-dot">1</div><div class="st-txt">基本資料</div></div>
-      <div class="st-line" id="sl1"></div>
-      <div class="st" id="st2"><div class="st-dot">2</div><div class="st-txt">文件上傳</div></div>
-      <div class="st-line" id="sl2"></div>
-      <div class="st" id="st3"><div class="st-dot">3</div><div class="st-txt">完成送出</div></div>
-      <div class="phase-indicator before">📋 作業前</div>
-    </div>
-    <div class="card">
-      <div class="card-hd">
-        <div class="card-ico">
-          <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-        </div>
-        <div>
-          <h2>作業前 — 基本資料填寫</h2>
+          <h2>基本資料填寫</h2>
           <p>選公司 → 篩選工程 → 自動帶入部門課別｜找不到請手動輸入，下一步後自動存入選單</p>
         </div>
       </div>
       <div class="card-bd">
+
+        <!-- 工程資訊 -->
         <div class="sec"><span>工程資訊</span></div>
         <div class="g2">
           <div class="fg">
@@ -374,8 +325,9 @@ tr:hover td{background:var(--surface-2)}
           </div>
         </div>
 
+        <!-- 手動輸入區 -->
         <div class="manual-wrap" id="manualWrap">
-          <div class="manual-lbl">✏️ 手動輸入（點選「下一步」後自動新增至 Google Sheets 選單）</div>
+          <div class="manual-lbl">✏️ 手動輸入（點選「前往通報」後自動新增至 Google Sheets 選單）</div>
           <div class="manual-grid">
             <div class="manual-fg"><label>承攬商公司名稱<span class="r">*</span></label><input type="text" class="inp" id="mCompany" placeholder="輸入公司名稱"></div>
             <div class="manual-fg"><label>工程名稱<span class="r">*</span></label><input type="text" class="inp" id="mProject" placeholder="輸入工程名稱"></div>
@@ -386,6 +338,72 @@ tr:hover td{background:var(--surface-2)}
         </div>
         <div style="margin-top:10px">
           <button class="btn btn-ghost" style="font-size:.76rem;padding:5px 12px" id="btnManual" onclick="showManual()">＋ 找不到選項？手動輸入</button>
+        </div>
+
+        <!-- 選擇通報階段 -->
+        <div class="sec" style="margin-top:28px"><span>選擇上傳時機點</span></div>
+        <div class="phase-grid">
+          <div class="phase-card before-phase" id="phaseCard_before" onclick="selectPhase('before')">
+            <div class="phase-icon">📋</div>
+            <div class="phase-title">作業前</div>
+            <div class="phase-desc">填寫作業人員、地點，上傳入場前所需文件與照片</div>
+            <div class="phase-badge">▶ 作業前通報</div>
+          </div>
+          <div class="phase-card mid-phase" id="phaseCard_mid" onclick="selectPhase('mid')">
+            <div class="phase-icon">🎥</div>
+            <div class="phase-title">作業中</div>
+            <div class="phase-desc">上傳 CCTV 監看螢幕畫面及人員進出管制表</div>
+            <div class="phase-badge">▶ 作業中通報</div>
+          </div>
+          <div class="phase-card after-phase" id="phaseCard_after" onclick="selectPhase('after')">
+            <div class="phase-icon">✅</div>
+            <div class="phase-title">作業後</div>
+            <div class="phase-desc">上傳人員進出管制表及現場結束後狀況照片</div>
+            <div class="phase-badge">▶ 作業後通報</div>
+          </div>
+        </div>
+
+        <!-- 無作業前資料提示 -->
+        <div id="noBeforeRecordWarn" class="hidden" style="margin-top:16px;padding:14px 18px;background:var(--amber-lt);border:1.5px solid var(--amber);border-radius:var(--r);font-size:.84rem;color:var(--amber)">
+          ⚠️ 今日尚未找到此公司／工程的<strong>作業前通報</strong>，請先選擇「作業前」完成通報後再進行作業中／作業後通報。
+        </div>
+
+        <div class="phase-proceed">
+          <button class="btn btn-primary" id="btnPhaseNext" onclick="proceedFromPhase()" disabled>
+            前往通報頁面
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PAGE 1 (BEFORE): Inspector / Time / Location ─── -->
+  <div id="pg1" class="hidden">
+    <div class="stepper phase-before" id="stepper1">
+      <div class="st on" id="st1"><div class="st-dot">1</div><div class="st-txt">作業資料</div></div>
+      <div class="st-line" id="sl1"></div>
+      <div class="st" id="st2"><div class="st-dot">2</div><div class="st-txt">文件上傳</div></div>
+      <div class="st-line" id="sl2"></div>
+      <div class="st" id="st3"><div class="st-dot">3</div><div class="st-txt">完成送出</div></div>
+      <div class="phase-indicator before">📋 作業前</div>
+    </div>
+    <div class="card">
+      <div class="card-hd">
+        <div class="card-ico">
+          <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        </div>
+        <div>
+          <h2>作業前 — 填寫作業資料</h2>
+          <p>請填寫檢驗員、作業時間及地點</p>
+        </div>
+      </div>
+      <div class="card-bd">
+        <!-- 顯示從 pg0 帶入的基本資訊 -->
+        <div class="auto-info" id="pg1BaseInfo" style="margin-bottom:18px">
+          <div class="ai-item"><div class="ai-lbl">承攬商公司</div><div class="ai-val" id="pg1_company">—</div></div>
+          <div class="ai-item"><div class="ai-lbl">工程名稱</div><div class="ai-val" id="pg1_project">—</div></div>
+          <div class="ai-item"><div class="ai-lbl">主辦部門／課別</div><div class="ai-val" id="pg1_deptSection">—</div></div>
         </div>
 
         <div class="sec"><span>作業人員與時間</span></div>
@@ -729,7 +747,8 @@ const S = {
   filesAfter: {},  // after files
   isManual: false,
   selectedPhase: null, // 'before' | 'mid' | 'after'
-  baseFields: null,    // stored fields for mid/after auto-fill
+  pg0Fields: null,     // company/project/dept/section from pg0
+  baseFields: null,    // full fields for mid/after auto-fill
   G_PDF_HTML: '',
 };
 
@@ -751,22 +770,107 @@ function selectPhase(phase) {
   ['before','mid','after'].forEach(p => {
     document.getElementById(`phaseCard_${p}`).classList.toggle('selected', p === phase);
   });
-  document.getElementById('btnPhaseNext').disabled = false;
+  // 只有選好公司＋工程才能啟用按鈕
+  updateProceedBtn();
+  // 隱藏之前的警告
+  document.getElementById('noBeforeRecordWarn').classList.add('hidden');
 }
 
-function proceedFromPhase() {
+function updateProceedBtn() {
+  const hasCompany = getPg0Company() && getPg0Project();
+  const hasPhase = !!S.selectedPhase;
+  document.getElementById('btnPhaseNext').disabled = !(hasCompany && hasPhase);
+}
+
+function getPg0Company() {
+  return S.isManual
+    ? document.getElementById('mCompany').value.trim()
+    : document.getElementById('selCompany').value;
+}
+function getPg0Project() {
+  return S.isManual
+    ? document.getElementById('mProject').value.trim()
+    : document.getElementById('selProject').value;
+}
+function getPg0Dept() {
+  return S.isManual ? document.getElementById('mDept').value.trim() : document.getElementById('fDept').value;
+}
+function getPg0Section() {
+  return S.isManual ? document.getElementById('mSection').value.trim() : document.getElementById('fSection').value;
+}
+
+async function proceedFromPhase() {
   if (!S.selectedPhase) return;
-  hide('pg0');
+  const company = getPg0Company();
+  const project = getPg0Project();
+  if (!company || !project) { toast('請先選擇公司與工程名稱', 'err'); return; }
+
+  // 儲存 pg0 基本資訊（作業前才需要繼續填其他欄位）
+  S.pg0Fields = {
+    company, project,
+    dept: getPg0Dept(),
+    section: getPg0Section(),
+  };
+
   if (S.selectedPhase === 'before') {
-    show('pg1');
-  } else if (S.selectedPhase === 'mid') {
-    populateAutoInfo('mid');
-    show('pg1mid');
+    // 前往 pg1 填檢驗員/時間/地點
+    _showPg1BeforeInfo();
+    if (S.isManual) {
+      // 若手動輸入，先存入 dropdown
+      try { await gasPost({ action:'addDropdown', ...S.pg0Fields }); S.dd.push(S.pg0Fields); } catch(e) {}
+    }
+    hide('pg0'); show('pg1'); window.scrollTo(0,0);
   } else {
-    populateAutoInfo('after');
-    show('pg1after');
+    // 作業中／作業後：查詢當日作業前記錄
+    showOv('查詢中...', '比對今日作業前通報', [{ id:'q1', label:'查詢 Google Sheets' }]);
+    ovStep('q1', 'active');
+    try {
+      const today = new Date().toISOString().slice(0,10);
+      const params = new URLSearchParams({ action:'query', company, project, phase:'before', date: today });
+      const res = await fetch(`${GAS_URL}?${params}`);
+      const rows = await res.json();
+      ovStep('q1', 'done');
+      hideOv();
+      if (!rows || rows.length === 0) {
+        // 無作業前記錄
+        document.getElementById('noBeforeRecordWarn').classList.remove('hidden');
+        toast('找不到今日作業前通報，請先完成作業前通報', 'warn');
+        return;
+      }
+      // 取最新一筆
+      const rec = rows[0];
+      S.baseFields = {
+        company:    rec.company,
+        project:    rec.project,
+        dept:       rec.dept,
+        section:    rec.section,
+        inspector:  rec.inspector,
+        startTime:  rec.startTime,
+        endTime:    rec.endTime,
+        workArea:   rec.workArea,
+        workDetail: rec.workDetail,
+      };
+      document.getElementById('noBeforeRecordWarn').classList.add('hidden');
+      hide('pg0');
+      if (S.selectedPhase === 'mid') {
+        populateAutoInfo('mid'); show('pg1mid');
+      } else {
+        populateAutoInfo('after'); show('pg1after');
+      }
+      window.scrollTo(0,0);
+    } catch(err) {
+      hideOv();
+      toast('查詢失敗: ' + err.message, 'err');
+    }
   }
-  window.scrollTo(0,0);
+}
+
+function _showPg1BeforeInfo() {
+  const f = S.pg0Fields || {};
+  document.getElementById('pg1_company').textContent = f.company || '—';
+  document.getElementById('pg1_project').textContent = f.project || '—';
+  const ds = [f.dept, f.section].filter(Boolean).join(' / ') || '—';
+  document.getElementById('pg1_deptSection').textContent = ds;
 }
 
 function backToPhaseSelect() {
@@ -814,9 +918,13 @@ function onCompanyChange() {
   const projSel = document.getElementById('selProject');
   projSel.innerHTML = '<option value="">— 請選擇工程 —</option>';
   projSel.disabled = !company;
-  if (!company) return;
+  document.getElementById('fDept').value = '';
+  document.getElementById('fSection').value = '';
+  document.getElementById('noBeforeRecordWarn').classList.add('hidden');
+  if (!company) { updateProceedBtn(); return; }
   const projects = [...new Set(S.dd.filter(r => r.company === company).map(r => r.project))].sort();
   projects.forEach(p => { const o = document.createElement('option'); o.value = o.textContent = p; projSel.appendChild(o); });
+  updateProceedBtn();
 }
 
 function onProjectChange() {
@@ -827,6 +935,8 @@ function onProjectChange() {
     document.getElementById('fDept').value = match.dept;
     document.getElementById('fSection').value = match.section;
   }
+  document.getElementById('noBeforeRecordWarn').classList.add('hidden');
+  updateProceedBtn();
 }
 
 function setHint(id, msg, type) {
@@ -834,32 +944,30 @@ function setHint(id, msg, type) {
   if (el) { el.textContent = msg; el.className = 'c-hint ' + type; }
 }
 
-function showManual() { S.isManual = true; document.getElementById('manualWrap').classList.add('show'); document.getElementById('btnManual').classList.add('hidden'); }
-function hideManual() { S.isManual = false; document.getElementById('manualWrap').classList.remove('show'); document.getElementById('btnManual').classList.remove('hidden'); }
+function showManual() {
+  S.isManual = true;
+  document.getElementById('manualWrap').classList.add('show');
+  document.getElementById('btnManual').classList.add('hidden');
+}
+function hideManual() {
+  S.isManual = false;
+  document.getElementById('manualWrap').classList.remove('show');
+  document.getElementById('btnManual').classList.remove('hidden');
+  updateProceedBtn();
+}
 
 function getFields() {
-  if (S.isManual) {
-    return {
-      company: document.getElementById('mCompany').value.trim(),
-      project: document.getElementById('mProject').value.trim(),
-      dept: document.getElementById('mDept').value.trim(),
-      section: document.getElementById('mSection').value.trim(),
-      inspector: document.getElementById('fInspector').value.trim(),
-      startTime: document.getElementById('fStart').value,
-      endTime: document.getElementById('fEnd').value,
-      workArea: document.getElementById('fArea').value.trim(),
-      workDetail: document.getElementById('fDetail').value.trim(),
-    };
-  }
+  // company/project/dept/section 統一從 pg0Fields 取得
+  const base = S.pg0Fields || {};
   return {
-    company: document.getElementById('selCompany').value,
-    project: document.getElementById('selProject').value,
-    dept: document.getElementById('fDept').value,
-    section: document.getElementById('fSection').value,
-    inspector: document.getElementById('fInspector').value.trim(),
-    startTime: document.getElementById('fStart').value,
-    endTime: document.getElementById('fEnd').value,
-    workArea: document.getElementById('fArea').value.trim(),
+    company:    base.company    || '',
+    project:    base.project    || '',
+    dept:       base.dept       || '',
+    section:    base.section    || '',
+    inspector:  document.getElementById('fInspector').value.trim(),
+    startTime:  document.getElementById('fStart').value,
+    endTime:    document.getElementById('fEnd').value,
+    workArea:   document.getElementById('fArea').value.trim(),
     workDetail: document.getElementById('fDetail').value.trim(),
   };
 }
@@ -925,17 +1033,11 @@ function rmFile(k, i, phase) {
 // ═══════════════════════════════════════════════════
 async function toPage2() {
   const f = getFields();
-  if (!f.company || !f.project || !f.inspector || !f.startTime || !f.endTime || !f.workArea || !f.workDetail) {
-    toast('請填寫必填欄位','err'); return;
+  if (!f.inspector || !f.startTime || !f.endTime || !f.workArea || !f.workDetail) {
+    toast('請填寫必填欄位（檢驗員、時間、地點）','err'); return;
   }
-  // Store base fields for mid/after phases
+  // 合併完整 baseFields 供作業中/後使用
   S.baseFields = { ...f };
-
-  if (S.isManual) {
-    showOv('儲存中...','更新選單資料',[]);
-    try { await gasPost({ action:'addDropdown', ...f }); S.dd.push(f); } catch(e) {}
-    hideOv();
-  }
   hide('pg1'); show('pg2'); window.scrollTo(0,0);
 }
 
