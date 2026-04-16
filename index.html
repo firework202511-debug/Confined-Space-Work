@@ -1158,26 +1158,30 @@ function manualPrint() {
 // ═══════════════════════════════════════════════════
 // 上傳至雲端
 // ═══════════════════════════════════════════════════
-async function uploadToCloud(phase) {
-  const f = phase === 'before' ? getFields() : (S.baseFields || {});
-  showOv('上傳中...', '寫入 Google Sheets', [{ id:'u1', label:'雲端作業' }]);
-  try {
-    ovStep('u1', 'active');
-    const actionMap = { before: 'submit', mid: 'submitMid', after: 'submitAfter' };
+async function uploadToCloud(){
+  if(!S.G_PDF_B64){ toast('請先生成 PDF','err'); return; }
+  const actionMap = {before:'submit', mid:'submitMid', after:'submitAfter'};
+  showOv('上傳中…','寫入 Google Sheets',[{id:'u1',label:'雲端作業'}]);
+  try{
+    ovStep('u1','active');
+    const f = S.submitFields;
+    const phLbl = {before:'作業前',mid:'作業中',after:'作業後'}[S.phase];
     const payload = {
-      action: actionMap[phase],
-      phase: phase,
-      fields: f,
-      pdfBase64: btoa(unescape(encodeURIComponent(S.G_PDF_HTML))),
-      pdfFilename: `局限作業_${phase}_${f.company||''}_${f.inspector||''}.pdf`
+      action:      actionMap[S.phase],
+      phase:       S.phase,
+      fields:      f,
+      pdfBase64:   S.G_PDF_B64,   // ← 真實 PDF 二進位 base64
+      pdfFilename: `局限作業_${phLbl}_${f.company||''}_${f.inspector||''}.pdf`
     };
     const res = await gasPost(payload);
-    if (res.error) throw new Error(res.error);
-    ovStep('u1', 'done');
-    hideOv();
-    showDone(phase);
-    toast('通報成功', 'ok');
-  } catch(e) { hideOv(); toast('上傳失敗: ' + e.message, 'err'); }
+    if(res.error) throw new Error(res.error);
+    ovStep('u1','done'); hideOv();
+
+    document.getElementById('doneTitle').textContent = `${phLbl}通報上傳成功`;
+    document.getElementById('doneSub').textContent   = `${phLbl} PDF 已存入 Google Sheets 及雲端硬碟`;
+    hideAll(); show('pg3');
+    toast('通報成功','ok');
+  }catch(e){ hideOv(); toast('上傳失敗: '+e.message,'err'); }
 }
 
 // ═══════════════════════════════════════════════════
