@@ -1,10 +1,13 @@
 <!DOCTYPE html>
+
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>局限作業通報系統</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 :root {
   --bg:#f5f6f8; --surface:#fff; --surface-2:#f0f2f6; --surface-3:#e8ebf0;
@@ -24,8 +27,6 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{font-size:15px}
 body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text-1);min-height:100vh;line-height:1.65;-webkit-font-smoothing:antialiased}
-
-/* Header */
 .hdr{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:80;box-shadow:var(--shadow-xs)}
 .hdr-in{max-width:1060px;margin:0 auto;padding:0 24px;display:flex;align-items:center;gap:14px;height:56px}
 .hdr-badge{width:34px;height:34px;border-radius:8px;background:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -36,29 +37,15 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
 .nav-btn{padding:6px 15px;border-radius:var(--r-sm);font-size:.8rem;font-weight:500;font-family:inherit;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text-2);transition:all .15s var(--ease)}
 .nav-btn:hover{background:var(--surface-2);color:var(--text-1)}
 .nav-btn.on{background:var(--blue);color:#fff;border-color:var(--blue)}
-
-/* Layout */
 .wrap{max-width:1060px;margin:0 auto;padding:26px 24px 72px}
-
-/* Phase Selector (Page 0) */
 .phase-selector{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-xs);overflow:hidden}
 .phase-selector .card-hd{padding:18px 28px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
 .phase-selector .card-ico{width:34px;height:34px;border-radius:var(--r-sm);background:var(--blue-lt);color:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .phase-selector .card-hd h2{font-size:.97rem;font-weight:700}
 .phase-selector .card-hd p{font-size:.76rem;color:var(--text-2);margin-top:2px}
 .phase-selector .card-bd{padding:28px}
-
-/* Base info summary bar */
-.base-info-bar{background:var(--blue-lt);border:1px solid var(--blue);border-radius:var(--r);padding:12px 18px;margin-bottom:20px;display:none}
-.base-info-bar.show{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-.bib-label{font-size:.72rem;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
-.bib-value{font-size:.83rem;color:var(--blue-dk);font-weight:500}
-.bib-sep{color:var(--blue);opacity:.4}
-
-/* Phase cards */
 .phase-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
 .phase-card{border:2px solid var(--border);border-radius:var(--r-lg);padding:24px 20px;cursor:pointer;transition:all .2s var(--ease);text-align:center;background:var(--surface);position:relative;overflow:hidden}
-.phase-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .2s}
 .phase-card:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,0,0,.1)}
 .phase-card.before-phase:hover,.phase-card.before-phase.selected{border-color:var(--blue);background:var(--blue-lt)}
 .phase-card.before-phase.selected{box-shadow:0 0 0 3px rgba(41,82,200,.2)}
@@ -73,10 +60,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
 .before-phase .phase-badge{background:var(--blue-lt);color:var(--blue)}
 .mid-phase .phase-badge{background:var(--purple-lt);color:var(--purple)}
 .after-phase .phase-badge{background:var(--teal-lt);color:var(--teal)}
-.phase-card.selected .phase-badge{opacity:1}
 .phase-proceed{margin-top:24px;display:flex;justify-content:flex-end}
-
-/* Stepper */
 .stepper{display:flex;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px 28px;margin-bottom:22px;box-shadow:var(--shadow-xs)}
 .st{display:flex;align-items:center;gap:10px;flex:1}
 .st-dot{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;background:var(--surface-3);color:var(--text-3);border:2px solid var(--border);transition:all .25s var(--ease)}
@@ -91,14 +75,10 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
 .st.ok .st-txt{color:var(--green)}
 .st-line{flex:none;width:36px;height:2px;background:var(--border);margin:0 4px;border-radius:2px;transition:background .3s}
 .st-line.ok{background:var(--green)}
-
-/* Phase indicator badge in stepper */
 .phase-indicator{margin-left:auto;padding:4px 12px;border-radius:20px;font-size:.72rem;font-weight:700;letter-spacing:.04em}
 .phase-indicator.before{background:var(--blue-lt);color:var(--blue);border:1px solid var(--blue)}
 .phase-indicator.mid{background:var(--purple-lt);color:var(--purple);border:1px solid var(--purple)}
 .phase-indicator.after{background:var(--teal-lt);color:var(--teal);border:1px solid var(--teal)}
-
-/* Card */
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-xs);overflow:hidden}
 .card-hd{padding:18px 28px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
 .card-ico{width:34px;height:34px;border-radius:var(--r-sm);background:var(--blue-lt);color:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -107,19 +87,13 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
 .card-hd h2{font-size:.97rem;font-weight:700}
 .card-hd p{font-size:.76rem;color:var(--text-2);margin-top:2px}
 .card-bd{padding:24px 28px}
-
-/* Auto-filled info row */
 .auto-info{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:18px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .ai-item{display:flex;flex-direction:column;gap:3px}
 .ai-lbl{font-size:.68rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em}
 .ai-val{font-size:.86rem;font-weight:600;color:var(--text-1)}
-
-/* Section */
 .sec{display:flex;align-items:center;gap:10px;margin:22px 0 16px}
 .sec span{font-size:.72rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;white-space:nowrap}
 .sec::before,.sec::after{content:'';flex:1;height:1px;background:var(--border)}
-
-/* Form */
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
 .fg{display:flex;flex-direction:column;gap:5px}
@@ -133,22 +107,16 @@ label .r{color:var(--red);margin-left:2px}
 .sw::after{content:'▾';position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text-3);font-size:.75rem}
 select.inp{padding-right:26px;cursor:pointer}
 select.inp:disabled{cursor:not-allowed}
-
-/* Cascade hints */
 .c-hint{font-size:.73rem;color:var(--text-3);margin-top:3px}
 .c-hint.loading{color:var(--blue)}
 .c-hint.filled{color:var(--green);font-weight:500}
 .c-hint.err{color:var(--red)}
-
-/* Manual area */
 .manual-wrap{margin-top:10px;padding:14px;background:var(--amber-lt);border:1.5px dashed var(--amber);border-radius:var(--r);display:none}
 .manual-wrap.show{display:block}
 .manual-lbl{font-size:.75rem;font-weight:700;color:var(--amber);margin-bottom:10px;display:flex;align-items:center;gap:6px}
 .manual-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .manual-fg{display:flex;flex-direction:column;gap:4px}
 .manual-fg label{font-size:.73rem}
-
-/* Buttons */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px 20px;border-radius:var(--r-sm);font-size:.85rem;font-weight:600;font-family:inherit;cursor:pointer;border:none;transition:all .15s var(--ease)}
 .btn-primary{background:var(--blue);color:#fff}
 .btn-primary:hover{background:var(--blue-dk);box-shadow:0 3px 10px rgba(41,82,200,.3)}
@@ -164,8 +132,6 @@ select.inp:disabled{cursor:not-allowed}
 .btn-download:hover{background:var(--amber);color:#fff}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 .btn-row{display:flex;gap:9px;justify-content:flex-end;margin-top:26px;padding-top:18px;border-top:1px solid var(--border)}
-
-/* Upload */
 .upload-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
 .up-box{border:1.5px dashed var(--border);border-radius:var(--r);padding:14px;background:var(--surface-2);transition:all .18s var(--ease)}
 .up-box:hover{border-color:var(--border-focus);background:var(--blue-lt)}
@@ -187,15 +153,11 @@ select.inp:disabled{cursor:not-allowed}
 .prev-item .fn{font-size:.58rem;color:var(--text-2);text-align:center;padding:0 3px;max-width:54px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rm{position:absolute;top:2px;right:2px;width:15px;height:15px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font-size:.58rem;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .req-tag{font-size:.62rem;background:var(--red-lt);color:var(--red);border-radius:3px;padding:1px 5px;font-weight:600}
-
-/* Done page */
 .done-wrap{text-align:center;padding:48px 28px}
 .done-icon{width:68px;height:68px;border-radius:50%;background:var(--green-lt);border:2px solid var(--green);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:1.8rem}
 .done-title{font-size:1.15rem;font-weight:700;margin-bottom:8px}
 .done-sub{font-size:.85rem;color:var(--text-2);margin-bottom:24px}
 .done-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
-
-/* Query */
 .q-bar{display:flex;gap:10px;align-items:flex-end;padding:18px 28px;background:var(--surface-2);border-bottom:1px solid var(--border);flex-wrap:wrap}
 .q-bar .fg{flex:1;min-width:150px}
 .tbl-wrap{overflow-x:auto}
@@ -209,14 +171,10 @@ tr:hover td{background:var(--surface-2)}
 .pdf-btn:hover{background:var(--blue);color:#fff}
 .empty{text-align:center;padding:48px 24px;color:var(--text-3)}
 .empty .ei{font-size:2.2rem;margin-bottom:10px}
-
-/* Phase badge in table */
 .phase-tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:12px;font-size:.68rem;font-weight:700;white-space:nowrap}
 .phase-tag.before{background:var(--blue-lt);color:var(--blue)}
 .phase-tag.mid{background:var(--purple-lt);color:var(--purple)}
 .phase-tag.after{background:var(--teal-lt);color:var(--teal)}
-
-/* Overlay */
 .overlay{position:fixed;inset:0;background:rgba(245,246,248,.9);backdrop-filter:blur(4px);z-index:200;display:none;place-items:center}
 .overlay.on{display:grid}
 .ov-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:36px 48px;text-align:center;box-shadow:var(--shadow-lg);min-width:300px}
@@ -229,18 +187,14 @@ tr:hover td{background:var(--surface-2)}
 .ov-step.active{background:var(--blue-lt);color:var(--blue);font-weight:600}
 .ov-step.done{background:var(--green-lt);color:var(--green)}
 .ov-step-dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0}
-
-/* Toast */
 .toast-wrap{position:fixed;bottom:22px;right:22px;z-index:300;display:flex;flex-direction:column;gap:7px}
 .toast{background:var(--text-1);color:#fff;padding:11px 17px;border-radius:var(--r);font-size:.82rem;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:9px;animation:tIn .22s var(--ease);max-width:320px}
 .toast.ok{background:var(--green)}
 .toast.err{background:var(--red)}
 .toast.warn{background:var(--amber)}
 @keyframes tIn{from{transform:translateX(32px);opacity:0}to{transform:none;opacity:1}}
-
 .hidden{display:none!important}
 .mono{font-family:'Courier New',monospace;font-size:.78rem}
-
 @media(max-width:680px){
   .g2,.g3,.upload-grid,.manual-grid,.phase-grid,.auto-info{grid-template-columns:1fr}
   .wrap{padding:14px 14px 60px}
@@ -280,13 +234,10 @@ tr:hover td{background:var(--surface-2)}
 <div class="toast-wrap" id="toasts"></div>
 
 <main class="wrap">
-
-<!-- ══════════════════════════════════════════════ -->
-<!-- FORM VIEW                                      -->
-<!-- ══════════════════════════════════════════════ -->
 <div id="formView">
 
-  <!-- ── PAGE 0: Phase Selection ───────────────── -->
+  <!-- PAGE 0 -->
+
   <div id="pg0">
     <div class="phase-selector">
       <div class="card-hd">
@@ -299,8 +250,6 @@ tr:hover td{background:var(--surface-2)}
         </div>
       </div>
       <div class="card-bd">
-
-        <!-- 工程資訊 -->
         <div class="sec"><span>工程資訊</span></div>
         <div class="g2">
           <div class="fg">
@@ -324,8 +273,6 @@ tr:hover td{background:var(--surface-2)}
             <div class="c-hint" id="hintSection">請先選擇工程名稱</div>
           </div>
         </div>
-
-        <!-- 手動輸入區 -->
         <div class="manual-wrap" id="manualWrap">
           <div class="manual-lbl">✏️ 手動輸入（點選「前往通報」後自動新增至 Google Sheets 選單）</div>
           <div class="manual-grid">
@@ -339,8 +286,6 @@ tr:hover td{background:var(--surface-2)}
         <div style="margin-top:10px">
           <button class="btn btn-ghost" style="font-size:.76rem;padding:5px 12px" id="btnManual" onclick="showManual()">＋ 找不到選項？手動輸入</button>
         </div>
-
-        <!-- 選擇通報階段 -->
         <div class="sec" style="margin-top:28px"><span>選擇上傳時機點</span></div>
         <div class="phase-grid">
           <div class="phase-card before-phase" id="phaseCard_before" onclick="selectPhase('before')">
@@ -362,12 +307,9 @@ tr:hover td{background:var(--surface-2)}
             <div class="phase-badge">▶ 作業後通報</div>
           </div>
         </div>
-
-        <!-- 無作業前資料提示 -->
         <div id="noBeforeRecordWarn" class="hidden" style="margin-top:16px;padding:14px 18px;background:var(--amber-lt);border:1.5px solid var(--amber);border-radius:var(--r);font-size:.84rem;color:var(--amber)">
           ⚠️ 今日尚未找到此公司／工程的<strong>作業前通報</strong>，請先選擇「作業前」完成通報後再進行作業中／作業後通報。
         </div>
-
         <div class="phase-proceed">
           <button class="btn btn-primary" id="btnPhaseNext" onclick="proceedFromPhase()" disabled>
             前往通報頁面
@@ -378,7 +320,8 @@ tr:hover td{background:var(--surface-2)}
     </div>
   </div>
 
-  <!-- ── PAGE 1 (BEFORE): Inspector / Time / Location ─── -->
+  <!-- PAGE 1 BEFORE -->
+
   <div id="pg1" class="hidden">
     <div class="stepper phase-before" id="stepper1">
       <div class="st on" id="st1"><div class="st-dot">1</div><div class="st-txt">作業資料</div></div>
@@ -393,80 +336,48 @@ tr:hover td{background:var(--surface-2)}
         <div class="card-ico">
           <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
         </div>
-        <div>
-          <h2>作業前 — 填寫作業資料</h2>
-          <p>請填寫檢驗員、作業時間及地點</p>
-        </div>
+        <div><h2>作業前 — 填寫作業資料</h2><p>請填寫檢驗員、作業時間及地點</p></div>
       </div>
       <div class="card-bd">
-        <!-- 顯示從 pg0 帶入的基本資訊 -->
         <div class="auto-info" id="pg1BaseInfo" style="margin-bottom:18px">
           <div class="ai-item"><div class="ai-lbl">承攬商公司</div><div class="ai-val" id="pg1_company">—</div></div>
           <div class="ai-item"><div class="ai-lbl">工程名稱</div><div class="ai-val" id="pg1_project">—</div></div>
           <div class="ai-item"><div class="ai-lbl">主辦部門／課別</div><div class="ai-val" id="pg1_deptSection">—</div></div>
         </div>
-
         <div class="sec"><span>作業人員與時間</span></div>
         <div class="g3">
-          <div class="fg">
-            <label>檢驗員姓名<span class="r">*</span></label>
-            <input type="text" id="fInspector" class="inp" placeholder="請輸入姓名">
-          </div>
-          <div class="fg">
-            <label>開始時間<span class="r">*</span></label>
-            <input type="datetime-local" class="inp" id="fStart">
-          </div>
-          <div class="fg">
-            <label>結束時間<span class="r">*</span></label>
-            <input type="datetime-local" class="inp" id="fEnd">
-          </div>
+          <div class="fg"><label>檢驗員姓名<span class="r">*</span></label><input type="text" id="fInspector" class="inp" placeholder="請輸入姓名"></div>
+          <div class="fg"><label>開始時間<span class="r">*</span></label><input type="datetime-local" class="inp" id="fStart"></div>
+          <div class="fg"><label>結束時間<span class="r">*</span></label><input type="datetime-local" class="inp" id="fEnd"></div>
         </div>
-
         <div class="sec"><span>作業地點</span></div>
         <div class="g2">
-          <div class="fg">
-            <label>作業區域<span class="r">*</span></label>
-            <input type="text" class="inp" id="fArea" placeholder="例：廠區 A 棟">
-          </div>
-          <div class="fg">
-            <label>作業詳細位置<span class="r">*</span></label>
-            <input type="text" class="inp" id="fDetail" placeholder="例：B1 管道間 H-3">
-          </div>
+          <div class="fg"><label>作業區域<span class="r">*</span></label><input type="text" class="inp" id="fArea" placeholder="例：廠區 A 棟"></div>
+          <div class="fg"><label>作業詳細位置<span class="r">*</span></label><input type="text" class="inp" id="fDetail" placeholder="例：B1 管道間 H-3"></div>
         </div>
-
         <div class="btn-row">
-          <button class="btn btn-ghost" onclick="backToPhaseSelect()">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
-            返回
-          </button>
-          <button class="btn btn-primary" onclick="toPage2()">
-            下一步：上傳資料
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
-          </button>
+          <button class="btn btn-ghost" onclick="backToPhaseSelect()"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>返回</button>
+          <button class="btn btn-primary" onclick="toPage2()">下一步：上傳資料<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ── PAGE 1-MID: Mid Phase Form ────────────── -->
+  <!-- PAGE 1 MID -->
+
   <div id="pg1mid" class="hidden">
     <div class="stepper" id="stepperMid">
-      <div class="st on" id="stm1"><div class="st-dot">1</div><div class="st-txt">確認資料</div></div>
-      <div class="st-line" id="slm1"></div>
-      <div class="st" id="stm2"><div class="st-dot">2</div><div class="st-txt">文件上傳</div></div>
-      <div class="st-line" id="slm2"></div>
-      <div class="st" id="stm3"><div class="st-dot">3</div><div class="st-txt">完成送出</div></div>
+      <div class="st on"><div class="st-dot">1</div><div class="st-txt">確認資料</div></div>
+      <div class="st-line"></div>
+      <div class="st"><div class="st-dot">2</div><div class="st-txt">文件上傳</div></div>
+      <div class="st-line"></div>
+      <div class="st"><div class="st-dot">3</div><div class="st-txt">完成送出</div></div>
       <div class="phase-indicator mid">🎥 作業中</div>
     </div>
     <div class="card">
       <div class="card-hd">
-        <div class="card-ico purple">
-          <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-        </div>
-        <div>
-          <h2>作業中 — 確認資料</h2>
-          <p>系統已從作業前記錄自動帶入以下資訊</p>
-        </div>
+        <div class="card-ico purple"><svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg></div>
+        <div><h2>作業中 — 確認資料</h2><p>系統已從作業前記錄自動帶入以下資訊</p></div>
       </div>
       <div class="card-bd">
         <div class="auto-info" id="midAutoInfo">
@@ -478,40 +389,29 @@ tr:hover td{background:var(--surface-2)}
           <div class="ai-item"><div class="ai-lbl">開始時間</div><div class="ai-val" id="mid_startTime">—</div></div>
         </div>
         <p style="font-size:.78rem;color:var(--text-3);margin-bottom:4px">※ 若需修改基本資料，請返回並重新填寫作業前通報</p>
-
         <div class="btn-row">
-          <button class="btn btn-ghost" onclick="backToPhaseSelect()">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
-            返回
-          </button>
-          <button class="btn btn-purple" onclick="toUploadMid()">
-            下一步：上傳文件
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
-          </button>
+          <button class="btn btn-ghost" onclick="backToPhaseSelect()"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>返回</button>
+          <button class="btn btn-purple" onclick="toUploadMid()">下一步：上傳文件<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ── PAGE 1-AFTER: After Phase Form ────────── -->
+  <!-- PAGE 1 AFTER -->
+
   <div id="pg1after" class="hidden">
     <div class="stepper" id="stepperAfter">
-      <div class="st on" id="sta1"><div class="st-dot">1</div><div class="st-txt">確認資料</div></div>
-      <div class="st-line" id="sla1"></div>
-      <div class="st" id="sta2"><div class="st-dot">2</div><div class="st-txt">文件上傳</div></div>
-      <div class="st-line" id="sla2"></div>
-      <div class="st" id="sta3"><div class="st-dot">3</div><div class="st-txt">完成送出</div></div>
+      <div class="st on"><div class="st-dot">1</div><div class="st-txt">確認資料</div></div>
+      <div class="st-line"></div>
+      <div class="st"><div class="st-dot">2</div><div class="st-txt">文件上傳</div></div>
+      <div class="st-line"></div>
+      <div class="st"><div class="st-dot">3</div><div class="st-txt">完成送出</div></div>
       <div class="phase-indicator after">✅ 作業後</div>
     </div>
     <div class="card">
       <div class="card-hd">
-        <div class="card-ico teal">
-          <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        </div>
-        <div>
-          <h2>作業後 — 確認資料</h2>
-          <p>系統已從作業前記錄自動帶入以下資訊</p>
-        </div>
+        <div class="card-ico teal"><svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+        <div><h2>作業後 — 確認資料</h2><p>系統已從作業前記錄自動帶入以下資訊</p></div>
       </div>
       <div class="card-bd">
         <div class="auto-info" id="afterAutoInfo">
@@ -523,63 +423,44 @@ tr:hover td{background:var(--surface-2)}
           <div class="ai-item"><div class="ai-lbl">開始時間</div><div class="ai-val" id="after_startTime">—</div></div>
         </div>
         <p style="font-size:.78rem;color:var(--text-3);margin-bottom:4px">※ 若需修改基本資料，請返回並重新填寫作業前通報</p>
-
         <div class="btn-row">
-          <button class="btn btn-ghost" onclick="backToPhaseSelect()">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
-            返回
-          </button>
-          <button class="btn btn-teal" onclick="toUploadAfter()">
-            下一步：上傳文件
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
-          </button>
+          <button class="btn btn-ghost" onclick="backToPhaseSelect()"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>返回</button>
+          <button class="btn btn-teal" onclick="toUploadAfter()">下一步：上傳文件<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ── PAGE 2: Upload (BEFORE) ───────────────── -->
+  <!-- PAGE 2 BEFORE -->
+
   <div id="pg2" class="hidden">
     <div class="stepper">
-      <div class="st ok" id="st1b"><div class="st-dot">✓</div><div class="st-txt">基本資料</div></div>
+      <div class="st ok"><div class="st-dot">✓</div><div class="st-txt">基本資料</div></div>
       <div class="st-line ok"></div>
-      <div class="st on" id="st2b"><div class="st-dot">2</div><div class="st-txt">文件上傳</div></div>
-      <div class="st-line" id="sl2b"></div>
-      <div class="st" id="st3b"><div class="st-dot">3</div><div class="st-txt">完成送出</div></div>
+      <div class="st on"><div class="st-dot">2</div><div class="st-txt">文件上傳</div></div>
+      <div class="st-line"></div>
+      <div class="st"><div class="st-dot">3</div><div class="st-txt">完成送出</div></div>
       <div class="phase-indicator before">📋 作業前</div>
     </div>
     <div class="card">
       <div class="card-hd">
-        <div class="card-ico">
-          <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-        </div>
-        <div>
-          <h2>作業前 — 文件 &amp; 照片上傳</h2>
-          <p>所有項目皆必填 — 完成後點「生成 PDF」預覽，再點「上傳至 Google Drive」送出</p>
-        </div>
+        <div class="card-ico"><svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>
+        <div><h2>作業前 — 文件 &amp; 照片上傳</h2><p>所有項目皆必填 — 完成後點「生成 PDF」預覽，再點「上傳至 Google Drive」送出</p></div>
       </div>
       <div class="card-bd">
         <div class="upload-grid" id="upGrid"></div>
         <div class="btn-row">
-          <button class="btn btn-ghost" onclick="toPage1()">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
-            返回
-          </button>
-          <button class="btn btn-primary" id="btnGenPdf" onclick="exportPDF('before')">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            生成 PDF 預覽
-          </button>
-          <button class="btn btn-success hidden" id="btnUpload" onclick="uploadToCloud('before')">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-            上傳至 Google Drive
-          </button>
+          <button class="btn btn-ghost" onclick="toPage1()"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>返回</button>
+          <button class="btn btn-primary" id="btnGenPdf" onclick="exportPDF('before')"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>生成 PDF 預覽</button>
+          <button class="btn btn-success hidden" id="btnUpload" onclick="uploadToCloud('before')"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>上傳至 Google Drive</button>
         </div>
         <div id="pdfPreviewArea" class="hidden" style="margin-top:18px;padding:16px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r)"></div>
       </div>
     </div>
   </div>
 
-  <!-- ── PAGE 2-MID: Upload (MID) ──────────────── -->
+  <!-- PAGE 2 MID -->
+
   <div id="pg2mid" class="hidden">
     <div class="stepper">
       <div class="st ok"><div class="st-dot">✓</div><div class="st-txt">確認資料</div></div>
@@ -591,36 +472,23 @@ tr:hover td{background:var(--surface-2)}
     </div>
     <div class="card">
       <div class="card-hd">
-        <div class="card-ico purple">
-          <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-        </div>
-        <div>
-          <h2>作業中 — 文件 &amp; 照片上傳</h2>
-          <p>上傳 CCTV 監看螢幕畫面及人員進出管制表</p>
-        </div>
+        <div class="card-ico purple"><svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>
+        <div><h2>作業中 — 文件 &amp; 照片上傳</h2><p>上傳 CCTV 監看螢幕畫面及人員進出管制表</p></div>
       </div>
       <div class="card-bd">
         <div class="upload-grid" id="upGridMid"></div>
         <div class="btn-row">
-          <button class="btn btn-ghost" onclick="show('pg1mid');hide('pg2mid')">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
-            返回
-          </button>
-          <button class="btn btn-purple" onclick="exportPDF('mid')">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            生成 PDF 預覽
-          </button>
-          <button class="btn btn-success hidden" id="btnUploadMid" onclick="uploadToCloud('mid')">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-            上傳至 Google Drive
-          </button>
+          <button class="btn btn-ghost" onclick="show('pg1mid');hide('pg2mid')"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>返回</button>
+          <button class="btn btn-purple" onclick="exportPDF('mid')"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>生成 PDF 預覽</button>
+          <button class="btn btn-success hidden" id="btnUploadMid" onclick="uploadToCloud('mid')"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>上傳至 Google Drive</button>
         </div>
         <div id="pdfPreviewAreaMid" class="hidden" style="margin-top:18px;padding:16px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r)"></div>
       </div>
     </div>
   </div>
 
-  <!-- ── PAGE 2-AFTER: Upload (AFTER) ──────────── -->
+  <!-- PAGE 2 AFTER -->
+
   <div id="pg2after" class="hidden">
     <div class="stepper">
       <div class="st ok"><div class="st-dot">✓</div><div class="st-txt">確認資料</div></div>
@@ -632,36 +500,23 @@ tr:hover td{background:var(--surface-2)}
     </div>
     <div class="card">
       <div class="card-hd">
-        <div class="card-ico teal">
-          <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-        </div>
-        <div>
-          <h2>作業後 — 文件 &amp; 照片上傳</h2>
-          <p>上傳人員進出管制表及現場結束後狀況照片</p>
-        </div>
+        <div class="card-ico teal"><svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>
+        <div><h2>作業後 — 文件 &amp; 照片上傳</h2><p>上傳人員進出管制表及現場結束後狀況照片</p></div>
       </div>
       <div class="card-bd">
         <div class="upload-grid" id="upGridAfter"></div>
         <div class="btn-row">
-          <button class="btn btn-ghost" onclick="show('pg1after');hide('pg2after')">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
-            返回
-          </button>
-          <button class="btn btn-teal" onclick="exportPDF('after')">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            生成 PDF 預覽
-          </button>
-          <button class="btn btn-success hidden" id="btnUploadAfter" onclick="uploadToCloud('after')">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-            上傳至 Google Drive
-          </button>
+          <button class="btn btn-ghost" onclick="show('pg1after');hide('pg2after')"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>返回</button>
+          <button class="btn btn-teal" onclick="exportPDF('after')"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>生成 PDF 預覽</button>
+          <button class="btn btn-success hidden" id="btnUploadAfter" onclick="uploadToCloud('after')"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>上傳至 Google Drive</button>
         </div>
         <div id="pdfPreviewAreaAfter" class="hidden" style="margin-top:18px;padding:16px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r)"></div>
       </div>
     </div>
   </div>
 
-  <!-- ── PAGE 3: Done ───────────────────────────── -->
+  <!-- PAGE 3 DONE -->
+
   <div id="pg3" class="hidden">
     <div class="card">
       <div class="done-wrap">
@@ -679,9 +534,8 @@ tr:hover td{background:var(--surface-2)}
 
 </div><!-- /formView -->
 
-<!-- ══════════════════════════════════════════════ -->
-<!-- QUERY VIEW                                     -->
-<!-- ══════════════════════════════════════════════ -->
+<!-- QUERY VIEW -->
+
 <div id="queryView" class="hidden">
   <div class="card">
     <div class="card-hd">
@@ -713,7 +567,6 @@ tr:hover td{background:var(--surface-2)}
 // ═══════════════════════════════════════════════════
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbyqjstCUdSL4htPXnhqWwC3pFcYHC-fGZXpo1f1GxtjEwtwZj_0-0XwGahwKvyDcFe3/exec';
 
-// 作業前上傳項目
 const ITEMS_BEFORE = [
   { k:'kaohsiung',   label:'高市檢申報擷取畫面' },
   { k:'permit',      label:'局限空間進入許可證' },
@@ -726,40 +579,21 @@ const ITEMS_BEFORE = [
   { k:'license1',    label:'缺氧作業主管證照' },
   { k:'license2',    label:'急救人員證照' },
 ];
+const ITEMS_MID   = [{ k:'cctv', label:'CCTV 監看螢幕畫面' }, { k:'access_mid', label:'人員進出管制表' }];
+const ITEMS_AFTER = [{ k:'access_after', label:'人員進出管制表' }, { k:'site_end', label:'現場結束後狀況' }];
 
-// 作業中上傳項目
-const ITEMS_MID = [
-  { k:'cctv',        label:'CCTV 監看螢幕畫面' },
-  { k:'access_mid',  label:'人員進出管制表' },
-];
-
-// 作業後上傳項目
-const ITEMS_AFTER = [
-  { k:'access_after', label:'人員進出管制表' },
-  { k:'site_end',     label:'現場結束後狀況' },
-];
-
-// 全域狀態
 const S = {
   dd: [],
-  files: {},       // before files
-  filesMid: {},    // mid files
-  filesAfter: {},  // after files
+  files: {}, filesMid: {}, filesAfter: {},
   isManual: false,
-  selectedPhase: null, // 'before' | 'mid' | 'after'
-  pg0Fields: null,     // company/project/dept/section from pg0
-  baseFields: null,    // full fields for mid/after auto-fill
-  G_PDF_HTML: '',
+  selectedPhase: null,
+  pg0Fields: null,
+  baseFields: null,
+  G_PDF_B64: '',   // ← 真實 PDF base64（修正：原為 G_PDF_HTML 存 HTML 字串）
 };
 
-// ═══════════════════════════════════════════════════
-// 初始化
-// ═══════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
-  buildUploadGrid('before');
-  buildUploadGrid('mid');
-  buildUploadGrid('after');
-  loadDD();
+  buildUploadGrid('before'); buildUploadGrid('mid'); buildUploadGrid('after'); loadDD();
 });
 
 // ═══════════════════════════════════════════════════
@@ -767,517 +601,377 @@ document.addEventListener('DOMContentLoaded', () => {
 // ═══════════════════════════════════════════════════
 function selectPhase(phase) {
   S.selectedPhase = phase;
-  ['before','mid','after'].forEach(p => {
-    document.getElementById(`phaseCard_${p}`).classList.toggle('selected', p === phase);
-  });
-  // 只有選好公司＋工程才能啟用按鈕
+  ['before','mid','after'].forEach(p => document.getElementById(`phaseCard_${p}`).classList.toggle('selected', p === phase));
   updateProceedBtn();
-  // 隱藏之前的警告
   document.getElementById('noBeforeRecordWarn').classList.add('hidden');
 }
-
 function updateProceedBtn() {
-  const hasCompany = getPg0Company() && getPg0Project();
-  const hasPhase = !!S.selectedPhase;
-  document.getElementById('btnPhaseNext').disabled = !(hasCompany && hasPhase);
+  const ok = getPg0Company() && getPg0Project() && !!S.selectedPhase;
+  document.getElementById('btnPhaseNext').disabled = !ok;
 }
-
-function getPg0Company() {
-  return S.isManual
-    ? document.getElementById('mCompany').value.trim()
-    : document.getElementById('selCompany').value;
-}
-function getPg0Project() {
-  return S.isManual
-    ? document.getElementById('mProject').value.trim()
-    : document.getElementById('selProject').value;
-}
-function getPg0Dept() {
-  return S.isManual ? document.getElementById('mDept').value.trim() : document.getElementById('fDept').value;
-}
-function getPg0Section() {
-  return S.isManual ? document.getElementById('mSection').value.trim() : document.getElementById('fSection').value;
-}
+function getPg0Company() { return S.isManual ? document.getElementById('mCompany').value.trim() : document.getElementById('selCompany').value; }
+function getPg0Project() { return S.isManual ? document.getElementById('mProject').value.trim() : document.getElementById('selProject').value; }
+function getPg0Dept()    { return S.isManual ? document.getElementById('mDept').value.trim()    : document.getElementById('fDept').value; }
+function getPg0Section() { return S.isManual ? document.getElementById('mSection').value.trim() : document.getElementById('fSection').value; }
 
 async function proceedFromPhase() {
   if (!S.selectedPhase) return;
-  const company = getPg0Company();
-  const project = getPg0Project();
+  const company = getPg0Company(), project = getPg0Project();
   if (!company || !project) { toast('請先選擇公司與工程名稱', 'err'); return; }
-
-  // 儲存 pg0 基本資訊（作業前才需要繼續填其他欄位）
-  S.pg0Fields = {
-    company, project,
-    dept: getPg0Dept(),
-    section: getPg0Section(),
-  };
+  S.pg0Fields = { company, project, dept: getPg0Dept(), section: getPg0Section() };
 
   if (S.selectedPhase === 'before') {
-    // 前往 pg1 填檢驗員/時間/地點
     _showPg1BeforeInfo();
-    if (S.isManual) {
-      // 若手動輸入，先存入 dropdown
-      try { await gasPost({ action:'addDropdown', ...S.pg0Fields }); S.dd.push(S.pg0Fields); } catch(e) {}
-    }
+    if (S.isManual) { try { await gasPost({ action:'addDropdown', ...S.pg0Fields }); S.dd.push(S.pg0Fields); } catch(e) {} }
     hide('pg0'); show('pg1'); window.scrollTo(0,0);
   } else {
-    // 作業中／作業後：查詢當日作業前記錄
     showOv('查詢中...', '比對今日作業前通報', [{ id:'q1', label:'查詢 Google Sheets' }]);
     ovStep('q1', 'active');
     try {
       const today = new Date().toISOString().slice(0,10);
       const params = new URLSearchParams({ action:'query', company, project, phase:'before', date: today });
-      const res = await fetch(`${GAS_URL}?${params}`);
-      const rows = await res.json();
-      ovStep('q1', 'done');
-      hideOv();
+      const rows = await fetch(`${GAS_URL}?${params}`).then(r=>r.json());
+      ovStep('q1', 'done'); hideOv();
       if (!rows || rows.length === 0) {
-        // 無作業前記錄
         document.getElementById('noBeforeRecordWarn').classList.remove('hidden');
         toast('找不到今日作業前通報，請先完成作業前通報', 'warn');
         return;
       }
-      // 取最新一筆
       const rec = rows[0];
-      S.baseFields = {
-        company:    rec.company,
-        project:    rec.project,
-        dept:       rec.dept,
-        section:    rec.section,
-        inspector:  rec.inspector,
-        startTime:  rec.startTime,
-        endTime:    rec.endTime,
-        workArea:   rec.workArea,
-        workDetail: rec.workDetail,
-      };
+      S.baseFields = { company:rec.company, project:rec.project, dept:rec.dept, section:rec.section, inspector:rec.inspector, startTime:rec.startTime, endTime:rec.endTime, workArea:rec.workArea, workDetail:rec.workDetail };
       document.getElementById('noBeforeRecordWarn').classList.add('hidden');
       hide('pg0');
-      if (S.selectedPhase === 'mid') {
-        populateAutoInfo('mid'); show('pg1mid');
-      } else {
-        populateAutoInfo('after'); show('pg1after');
-      }
+      if (S.selectedPhase === 'mid') { populateAutoInfo('mid'); show('pg1mid'); }
+      else { populateAutoInfo('after'); show('pg1after'); }
       window.scrollTo(0,0);
-    } catch(err) {
-      hideOv();
-      toast('查詢失敗: ' + err.message, 'err');
-    }
+    } catch(err) { hideOv(); toast('查詢失敗: ' + err.message, 'err'); }
   }
 }
-
 function _showPg1BeforeInfo() {
   const f = S.pg0Fields || {};
   document.getElementById('pg1_company').textContent = f.company || '—';
   document.getElementById('pg1_project').textContent = f.project || '—';
-  const ds = [f.dept, f.section].filter(Boolean).join(' / ') || '—';
-  document.getElementById('pg1_deptSection').textContent = ds;
+  document.getElementById('pg1_deptSection').textContent = [f.dept, f.section].filter(Boolean).join(' / ') || '—';
 }
-
-function backToPhaseSelect() {
-  hideAllPages();
-  show('pg0');
-  window.scrollTo(0,0);
-}
-
-function hideAllPages() {
-  ['pg0','pg1','pg1mid','pg1after','pg2','pg2mid','pg2after','pg3'].forEach(hide);
-}
-
-// ═══════════════════════════════════════════════════
-// 自動帶入（作業中/作業後）
-// ═══════════════════════════════════════════════════
+function backToPhaseSelect() { hideAllPages(); show('pg0'); window.scrollTo(0,0); }
+function hideAllPages() { ['pg0','pg1','pg1mid','pg1after','pg2','pg2mid','pg2after','pg3'].forEach(hide); }
 function populateAutoInfo(phase) {
   const f = S.baseFields || {};
-  const ids = ['inspector','workArea','workDetail','company','project','startTime'];
-  ids.forEach(key => {
+  ['inspector','workArea','workDetail','company','project','startTime'].forEach(key => {
     const el = document.getElementById(`${phase}_${key}`);
     if (el) el.textContent = (key === 'startTime' && f[key]) ? f[key].replace('T',' ') : (f[key] || '—');
   });
 }
 
 // ═══════════════════════════════════════════════════
-// 下拉選單載入
+// 下拉選單
 // ═══════════════════════════════════════════════════
 async function loadDD() {
   setHint('hintCompany', '載入中...', 'loading');
   try {
-    const res = await fetch(`${GAS_URL}?action=dropdown`);
-    const data = await res.json();
+    const data = await fetch(`${GAS_URL}?action=dropdown`).then(r=>r.json());
     S.dd = data;
-    const companies = [...new Set(S.dd.map(r => r.company))].sort();
-    fillSelect('selCompany', companies, '— 請選擇公司 —');
-    fillSelect('qCo', companies, '— 全部 —', false);
-    const allPrj = [...new Set(S.dd.map(r => r.project))].sort();
-    fillSelect('qPrj', allPrj, '— 全部 —', false);
-    setHint('hintCompany', `已載入 ${companies.length} 間公司`, 'filled');
+    const cos = [...new Set(S.dd.map(r=>r.company))].sort();
+    fillSelect('selCompany', cos, '— 請選擇公司 —');
+    fillSelect('qCo', cos, '— 全部 —', false);
+    fillSelect('qPrj', [...new Set(S.dd.map(r=>r.project))].sort(), '— 全部 —', false);
+    setHint('hintCompany', `已載入 ${cos.length} 間公司`, 'filled');
   } catch(e) { setHint('hintCompany', '載入失敗，可手動輸入', 'err'); }
 }
-
 function onCompanyChange() {
-  const company = document.getElementById('selCompany').value;
-  const projSel = document.getElementById('selProject');
-  projSel.innerHTML = '<option value="">— 請選擇工程 —</option>';
-  projSel.disabled = !company;
-  document.getElementById('fDept').value = '';
-  document.getElementById('fSection').value = '';
+  const co = document.getElementById('selCompany').value;
+  const ps = document.getElementById('selProject');
+  ps.innerHTML = '<option value="">— 請選擇工程 —</option>';
+  ps.disabled = !co;
+  document.getElementById('fDept').value = ''; document.getElementById('fSection').value = '';
   document.getElementById('noBeforeRecordWarn').classList.add('hidden');
-  if (!company) { updateProceedBtn(); return; }
-  const projects = [...new Set(S.dd.filter(r => r.company === company).map(r => r.project))].sort();
-  projects.forEach(p => { const o = document.createElement('option'); o.value = o.textContent = p; projSel.appendChild(o); });
+  if (!co) { updateProceedBtn(); return; }
+  [...new Set(S.dd.filter(r=>r.company===co).map(r=>r.project))].sort()
+    .forEach(p=>{ const o=document.createElement('option'); o.value=o.textContent=p; ps.appendChild(o); });
   updateProceedBtn();
 }
-
 function onProjectChange() {
-  const company = document.getElementById('selCompany').value;
-  const project = document.getElementById('selProject').value;
-  const match = S.dd.find(r => r.company === company && r.project === project);
-  if (match) {
-    document.getElementById('fDept').value = match.dept;
-    document.getElementById('fSection').value = match.section;
-  }
+  const co=document.getElementById('selCompany').value, prj=document.getElementById('selProject').value;
+  const m=S.dd.find(r=>r.company===co&&r.project===prj);
+  if(m){ document.getElementById('fDept').value=m.dept; document.getElementById('fSection').value=m.section; }
   document.getElementById('noBeforeRecordWarn').classList.add('hidden');
   updateProceedBtn();
 }
-
-function setHint(id, msg, type) {
-  const el = document.getElementById(id);
-  if (el) { el.textContent = msg; el.className = 'c-hint ' + type; }
-}
-
-function showManual() {
-  S.isManual = true;
-  document.getElementById('manualWrap').classList.add('show');
-  document.getElementById('btnManual').classList.add('hidden');
-}
-function hideManual() {
-  S.isManual = false;
-  document.getElementById('manualWrap').classList.remove('show');
-  document.getElementById('btnManual').classList.remove('hidden');
-  updateProceedBtn();
-}
-
+function setHint(id,msg,type){ const el=document.getElementById(id); if(el){el.textContent=msg;el.className='c-hint '+type;} }
+function showManual(){ S.isManual=true; document.getElementById('manualWrap').classList.add('show'); document.getElementById('btnManual').classList.add('hidden'); }
+function hideManual(){ S.isManual=false; document.getElementById('manualWrap').classList.remove('show'); document.getElementById('btnManual').classList.remove('hidden'); updateProceedBtn(); }
 function getFields() {
-  // company/project/dept/section 統一從 pg0Fields 取得
   const base = S.pg0Fields || {};
-  return {
-    company:    base.company    || '',
-    project:    base.project    || '',
-    dept:       base.dept       || '',
-    section:    base.section    || '',
-    inspector:  document.getElementById('fInspector').value.trim(),
-    startTime:  document.getElementById('fStart').value,
-    endTime:    document.getElementById('fEnd').value,
-    workArea:   document.getElementById('fArea').value.trim(),
-    workDetail: document.getElementById('fDetail').value.trim(),
-  };
+  return { company:base.company||'', project:base.project||'', dept:base.dept||'', section:base.section||'', inspector:document.getElementById('fInspector').value.trim(), startTime:document.getElementById('fStart').value, endTime:document.getElementById('fEnd').value, workArea:document.getElementById('fArea').value.trim(), workDetail:document.getElementById('fDetail').value.trim() };
 }
 
 // ═══════════════════════════════════════════════════
-// 上傳區塊建立
+// 上傳格子
 // ═══════════════════════════════════════════════════
 function buildUploadGrid(phase) {
-  let items, gridId, store;
-  if (phase === 'before') { items = ITEMS_BEFORE; gridId = 'upGrid'; store = S.files; }
-  else if (phase === 'mid') { items = ITEMS_MID; gridId = 'upGridMid'; store = S.filesMid; }
-  else { items = ITEMS_AFTER; gridId = 'upGridAfter'; store = S.filesAfter; }
-
-  document.getElementById(gridId).innerHTML = items.map((item, i) => `
-    <div class="up-box" id="box_${phase}_${item.k}"
-         ondragover="onDragOver(event)"
-         ondrop="onDrop(event, '${item.k}', '${phase}')">
+  let items, gridId;
+  if(phase==='before'){items=ITEMS_BEFORE;gridId='upGrid';}
+  else if(phase==='mid'){items=ITEMS_MID;gridId='upGridMid';}
+  else{items=ITEMS_AFTER;gridId='upGridAfter';}
+  document.getElementById(gridId).innerHTML = items.map((item,i)=>`
+    <div class="up-box" id="box_${phase}_${item.k}" ondragover="onDragOver(event)" ondrop="onDrop(event,'${item.k}','${phase}')">
       <div class="up-lbl"><span class="up-num">${i+1}</span>${item.label}<span class="req-tag">必填</span></div>
-      <div class="up-zone" onclick="triggerFile('${item.k}', '${phase}')">
-        <input type="file" id="fi_${phase}_${item.k}" multiple accept="image/*" onchange="onFile('${item.k}', this.files, '${phase}')">
+      <div class="up-zone" onclick="triggerFile('${item.k}','${phase}')">
+        <input type="file" id="fi_${phase}_${item.k}" multiple accept="image/*" onchange="onFile('${item.k}',this.files,'${phase}')">
         <div class="zi">📎</div><div class="zt">拖放或點選</div><div class="za">僅限圖片檔</div>
       </div>
       <div class="previews" id="pv_${phase}_${item.k}"></div>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
-
-function onDragOver(e) { e.preventDefault(); e.stopPropagation(); }
-function onDrop(e, k, phase) { e.preventDefault(); e.stopPropagation(); if (e.dataTransfer.files.length > 0) onFile(k, e.dataTransfer.files, phase); }
-function triggerFile(k, phase) { document.getElementById(`fi_${phase}_${k}`).click(); }
-
-function onFile(k, fl, phase) {
-  const store = phase === 'before' ? S.files : (phase === 'mid' ? S.filesMid : S.filesAfter);
-  if (!store[k]) store[k] = [];
-  Array.from(fl).forEach(f => store[k].push(f));
-  renderPreviews(k, phase);
-  document.getElementById(`box_${phase}_${k}`).classList.toggle('done', store[k].length > 0);
-  // hide upload btn on file re-select
-  const btnId = phase === 'before' ? 'btnUpload' : (phase === 'mid' ? 'btnUploadMid' : 'btnUploadAfter');
+function onDragOver(e){e.preventDefault();e.stopPropagation();}
+function onDrop(e,k,phase){e.preventDefault();e.stopPropagation();if(e.dataTransfer.files.length>0)onFile(k,e.dataTransfer.files,phase);}
+function triggerFile(k,phase){document.getElementById(`fi_${phase}_${k}`).click();}
+function onFile(k,fl,phase){
+  const store=phase==='before'?S.files:(phase==='mid'?S.filesMid:S.filesAfter);
+  if(!store[k])store[k]=[];
+  Array.from(fl).forEach(f=>store[k].push(f));
+  renderPreviews(k,phase);
+  document.getElementById(`box_${phase}_${k}`).classList.toggle('done',store[k].length>0);
+  const btnId=phase==='before'?'btnUpload':(phase==='mid'?'btnUploadMid':'btnUploadAfter');
   document.getElementById(btnId).classList.add('hidden');
+  S.G_PDF_B64 = ''; // 重新選圖後需重新生成 PDF
 }
-
-function renderPreviews(k, phase) {
-  const store = phase === 'before' ? S.files : (phase === 'mid' ? S.filesMid : S.filesAfter);
-  const files = store[k] || [];
-  document.getElementById(`pv_${phase}_${k}`).innerHTML = files.map((f, i) => `
+function renderPreviews(k,phase){
+  const store=phase==='before'?S.files:(phase==='mid'?S.filesMid:S.filesAfter);
+  document.getElementById(`pv_${phase}_${k}`).innerHTML=(store[k]||[]).map((f,i)=>`
     <div class="prev-item">
-      ${f.type.startsWith('image/') ? `<img src="${URL.createObjectURL(f)}">` : `<div class="fi">📄<div class="fn">${f.name}</div></div>`}
+      ${f.type.startsWith('image/')?`<img src="${URL.createObjectURL(f)}">`:`<div class="fi">📄<div class="fn">${f.name}</div></div>`}
       <button class="rm" onclick="rmFile('${k}',${i},'${phase}')">✕</button>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
-
-function rmFile(k, i, phase) {
-  const store = phase === 'before' ? S.files : (phase === 'mid' ? S.filesMid : S.filesAfter);
-  store[k].splice(i,1);
-  renderPreviews(k, phase);
-  document.getElementById(`box_${phase}_${k}`).classList.toggle('done', store[k].length > 0);
+function rmFile(k,i,phase){
+  const store=phase==='before'?S.files:(phase==='mid'?S.filesMid:S.filesAfter);
+  store[k].splice(i,1); renderPreviews(k,phase);
+  document.getElementById(`box_${phase}_${k}`).classList.toggle('done',store[k].length>0);
 }
 
 // ═══════════════════════════════════════════════════
-// 導覽邏輯
+// 導覽
 // ═══════════════════════════════════════════════════
 async function toPage2() {
   const f = getFields();
-  if (!f.inspector || !f.startTime || !f.endTime || !f.workArea || !f.workDetail) {
-    toast('請填寫必填欄位（檢驗員、時間、地點）','err'); return;
-  }
-  // 合併完整 baseFields 供作業中/後使用
+  if (!f.inspector || !f.startTime || !f.endTime || !f.workArea || !f.workDetail) { toast('請填寫必填欄位（檢驗員、時間、地點）','err'); return; }
   S.baseFields = { ...f };
   hide('pg1'); show('pg2'); window.scrollTo(0,0);
 }
-
-function toPage1() { hide('pg2'); show('pg1'); }
-
-function toUploadMid() { hide('pg1mid'); show('pg2mid'); window.scrollTo(0,0); }
-function toUploadAfter() { hide('pg1after'); show('pg2after'); window.scrollTo(0,0); }
-
-function showDone(phase) {
+function toPage1(){ hide('pg2'); show('pg1'); }
+function toUploadMid(){ hide('pg1mid'); show('pg2mid'); window.scrollTo(0,0); }
+function toUploadAfter(){ hide('pg1after'); show('pg2after'); window.scrollTo(0,0); }
+function showDone(phase){
   hideAllPages();
-  const titles = { before:'作業前通報上傳成功', mid:'作業中通報上傳成功', after:'作業後通報上傳成功' };
-  const subs = { before:'作業前 PDF 已存入 Google Sheets 及雲端硬碟', mid:'作業中 PDF 已存入 Google Sheets 及雲端硬碟', after:'作業後 PDF 已存入 Google Sheets 及雲端硬碟' };
-  document.getElementById('doneTitle').textContent = titles[phase] || '上傳成功';
-  document.getElementById('doneSub').textContent = subs[phase] || 'PDF 記錄已上傳';
+  const titles={before:'作業前通報上傳成功',mid:'作業中通報上傳成功',after:'作業後通報上傳成功'};
+  const subs={before:'作業前 PDF 已存入 Google Sheets 及雲端硬碟',mid:'作業中 PDF 已存入 Google Sheets 及雲端硬碟',after:'作業後 PDF 已存入 Google Sheets 及雲端硬碟'};
+  document.getElementById('doneTitle').textContent=titles[phase]||'上傳成功';
+  document.getElementById('doneSub').textContent=subs[phase]||'PDF 記錄已上傳';
   show('pg3');
 }
 
 // ═══════════════════════════════════════════════════
-// PDF 生成
+// PDF 生成（html2canvas → jsPDF 產生真實 PDF）
 // ═══════════════════════════════════════════════════
 async function exportPDF(phase) {
-  const items = phase === 'before' ? ITEMS_BEFORE : (phase === 'mid' ? ITEMS_MID : ITEMS_AFTER);
-  const store = phase === 'before' ? S.files : (phase === 'mid' ? S.filesMid : S.filesAfter);
+  const items    = phase === 'before' ? ITEMS_BEFORE : (phase === 'mid' ? ITEMS_MID : ITEMS_AFTER);
+  const store    = phase === 'before' ? S.files : (phase === 'mid' ? S.filesMid : S.filesAfter);
   const previewId = phase === 'before' ? 'pdfPreviewArea' : (phase === 'mid' ? 'pdfPreviewAreaMid' : 'pdfPreviewAreaAfter');
-  const btnId = phase === 'before' ? 'btnUpload' : (phase === 'mid' ? 'btnUploadMid' : 'btnUploadAfter');
+  const btnId    = phase === 'before' ? 'btnUpload' : (phase === 'mid' ? 'btnUploadMid' : 'btnUploadAfter');
 
   const missing = items.filter(item => !store[item.k] || store[item.k].length === 0);
   if (missing.length > 0) { toast(`尚有 ${missing.length} 項未上傳`, 'err'); return; }
 
   const f = phase === 'before' ? getFields() : (S.baseFields || {});
-  showOv('產生報表中...', '正在處理圖片', [{ id: 'p1', label: '處理媒體資料' }, { id: 'p2', label: '生成報表視窗' }]);
+  showOv('產生報表中...', '正在處理圖片', [
+    { id: 'p1', label: '讀取圖片' },
+    { id: 'p2', label: '排版報表' },
+    { id: 'p3', label: '產生 PDF' }
+  ]);
 
   try {
     ovStep('p1', 'active');
     const imagePreviews = {};
     for (const item of items) {
       if (store[item.k]) {
-        const imgFiles = store[item.k].filter(f => f.type.startsWith('image/'));
-        imagePreviews[item.k] = await Promise.all(imgFiles.map(f => fileToBase64(f)));
+        const imgFiles = store[item.k].filter(fi => fi.type.startsWith('image/'));
+        imagePreviews[item.k] = await Promise.all(imgFiles.map(fi => fileToBase64(fi)));
       }
     }
     ovStep('p1', 'done');
+
     ovStep('p2', 'active');
-
     const phaseLabels = { before:'作業前', mid:'作業中', after:'作業後' };
-    const phaseLabel = phaseLabels[phase] || '';
+    const phaseLabel  = phaseLabels[phase] || '';
+    const phColor = { before:'#2952c8', mid:'#6d28d9', after:'#0d7490' }[phase];
+    const phBg    = { before:'#eef2fc', mid:'#f5f3ff', after:'#ecfeff' }[phase];
+    const TH = 'border:1px solid #cbd5e1;padding:8px 10px;background:#f8fafc;color:#334155;width:22%;vertical-align:top';
+    const TD = 'border:1px solid #cbd5e1;padding:8px 10px;vertical-align:top';
 
-    let html = `<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8">
-    <title>局限空間通報單_${f.project || ''}_${phaseLabel}</title>
-    <style>
-      body { font-family: 'Microsoft JhengHei', sans-serif; padding: 40px; color: #111; line-height: 1.5; }
-      .header { text-align: center; margin-bottom: 30px; border-bottom: 3px solid #2952c8; padding-bottom: 15px; }
-      .header h1 { margin: 0; color: #1d3d9e; font-size: 26px; }
-      .phase-badge { display:inline-block; padding:3px 14px; border-radius:20px; font-size:14px; font-weight:700; margin-top:8px;
-        background:${phase==='before'?'#eef2fc':phase==='mid'?'#f5f3ff':'#ecfeff'};
-        color:${phase==='before'?'#2952c8':phase==='mid'?'#6d28d9':'#0d7490'}; border:1px solid currentColor; }
-      table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-      th, td { border: 1px solid #cbd5e1; padding: 10px; font-size: 14px; text-align: left; }
-      th { background-color: #f8fafc; width: 25%; color: #334155; }
-      .section-header { background: #eef2fc; font-weight: bold; color: #2952c8; padding: 8px 12px; margin-top: 20px; border-left: 5px solid #2952c8; }
-      .img-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
-      .img-item { border: 1px solid #ddd; padding: 5px; text-align: center; page-break-inside: avoid; }
-      .img-item img { max-width: 100%; height: 200px; object-fit: cover; }
-      .img-label { font-size: 12px; font-weight: bold; margin-top: 5px; }
-    </style></head><body>
-    <div class="header">
-      <h1>局限空間作業通報書</h1>
-      <div>Confined Space Work Notification Report</div>
-      <div class="phase-badge">📌 ${phaseLabel}通報</div>
-    </div>
-    <div style="text-align:right; font-size:12px; color:#666;">產出時間：${new Date().toLocaleString('zh-TW')}</div>
-    <div class="section-header">基本資料</div>
-    <table>
-      <tr><th>承攬商公司</th><td>${f.company||'—'}</td><th>工程名稱</th><td>${f.project||'—'}</td></tr>
-      <tr><th>主辦部門</th><td>${f.dept||'—'}</td><th>主辦課別</th><td>${f.section||'—'}</td></tr>
-      <tr><th>檢驗員</th><td>${f.inspector||'—'}</td><th>作業區域</th><td>${f.workArea||'—'}</td></tr>
-      <tr><th>開始時間</th><td>${(f.startTime||'').replace('T', ' ')}</td><th>結束時間</th><td>${(f.endTime||'').replace('T', ' ')}</td></tr>
-      <tr><th>詳細位置</th><td colspan="3">${f.workDetail || '—'}</td></tr>
-      <tr><th>上傳時機</th><td colspan="3"><strong>${phaseLabel}通報</strong></td></tr>
-    </table>
-    <div class="section-header">查核照片與附件（${phaseLabel}）</div>
-    <div class="img-grid">`;
-
+    let imgRows = '';
     for (const item of items) {
-      if (imagePreviews[item.k]) {
-        imagePreviews[item.k].forEach(img => {
-          html += `<div class="img-item"><img src="${img.dataUrl}"><div class="img-label">${item.label}</div></div>`;
-        });
-      }
+      (imagePreviews[item.k] || []).forEach(img => {
+        imgRows += `<div style="border:1px solid #ddd;padding:6px;text-align:center;margin-bottom:8px">
+          <img src="${img.dataUrl}" style="max-width:100%;max-height:220px;object-fit:contain;display:block;margin:0 auto">
+          <div style="font-size:12px;font-weight:bold;margin-top:5px;color:#334155">${item.label}</div>
+        </div>`;
+      });
     }
-    html += `</div></body></html>`;
-    S.G_PDF_HTML = html;
 
+    const container = document.createElement('div');
+    container.id = '__pdfRender';
+    container.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;background:#fff;padding:40px;font-family:Arial,sans-serif;font-size:13px;line-height:1.6;color:#111;box-sizing:border-box';
+    container.innerHTML = `
+      <div style="text-align:center;margin-bottom:24px;border-bottom:3px solid ${phColor};padding-bottom:14px">
+        <h1 style="margin:0;color:#1d3d9e;font-size:22px">局限空間作業通報書</h1>
+        <div style="font-size:12px;color:#555;margin-top:4px">Confined Space Work Notification Report</div>
+        <span style="display:inline-block;margin-top:8px;padding:3px 14px;border-radius:20px;font-size:12px;font-weight:700;background:${phBg};color:${phColor};border:1px solid ${phColor}">📌 ${phaseLabel}通報</span>
+      </div>
+      <div style="text-align:right;font-size:11px;color:#888;margin-bottom:12px">產出時間：${new Date().toLocaleString('zh-TW')}</div>
+      <div style="background:#eef2fc;font-weight:bold;color:#2952c8;padding:7px 12px;margin-bottom:8px;border-left:5px solid #2952c8;font-size:13px">基本資料</div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:20px;font-size:12px">
+        <tr><th style="${TH}">承攬商公司</th><td style="${TD}">${f.company||'—'}</td><th style="${TH}">工程名稱</th><td style="${TD}">${f.project||'—'}</td></tr>
+        <tr><th style="${TH}">主辦部門</th><td style="${TD}">${f.dept||'—'}</td><th style="${TH}">主辦課別</th><td style="${TD}">${f.section||'—'}</td></tr>
+        <tr><th style="${TH}">檢驗員</th><td style="${TD}">${f.inspector||'—'}</td><th style="${TH}">作業區域</th><td style="${TD}">${f.workArea||'—'}</td></tr>
+        <tr><th style="${TH}">開始時間</th><td style="${TD}">${(f.startTime||'').replace('T',' ')}</td><th style="${TH}">結束時間</th><td style="${TD}">${(f.endTime||'').replace('T',' ')}</td></tr>
+        <tr><th style="${TH}">詳細位置</th><td style="${TD}" colspan="3">${f.workDetail||'—'}</td></tr>
+        <tr><th style="${TH}">上傳時機</th><td style="${TD};font-weight:700" colspan="3">${phaseLabel}通報</td></tr>
+      </table>
+      <div style="background:#eef2fc;font-weight:bold;color:#2952c8;padding:7px 12px;margin-bottom:12px;border-left:5px solid #2952c8;font-size:13px">查核照片與附件（${phaseLabel}）</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">${imgRows}</div>`;
+    document.body.appendChild(container);
     ovStep('p2', 'done');
+
+    ovStep('p3', 'active');
+    const canvas = await html2canvas(container, { scale:2, useCORS:true, allowTaint:true, backgroundColor:'#ffffff', logging:false });
+    document.body.removeChild(container);
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    const A4_W = 210, A4_H = 297;
+    const ratio = A4_W / (canvas.width / 2);
+    const pageHpx = A4_H / ratio;
+    const totalH = canvas.height / 2;
+    let yOff = 0, pageNum = 0;
+    while (yOff < totalH) {
+      if (pageNum > 0) pdf.addPage();
+      const sliceH = Math.min(pageHpx, totalH - yOff);
+      const slicePx = Math.ceil(sliceH * 2);
+      const tmp = document.createElement('canvas');
+      tmp.width = canvas.width; tmp.height = slicePx;
+      tmp.getContext('2d').drawImage(canvas, 0, Math.round(yOff*2), canvas.width, slicePx, 0, 0, canvas.width, slicePx);
+      pdf.addImage(tmp.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, A4_W, sliceH * ratio);
+      yOff += sliceH; pageNum++;
+    }
+    S.G_PDF_B64 = pdf.output('datauristring').split(',')[1];
+    ovStep('p3', 'done');
     hideOv();
 
     const previewArea = document.getElementById(previewId);
     previewArea.classList.remove('hidden');
     previewArea.innerHTML = `
-      <div style="padding:15px; background:#fff; border:1px solid #ccc; border-radius:8px; margin-bottom:10px;">
-        <p style="color:var(--green); font-weight:600;">✅ 報表內容已備妥</p>
-        <p style="font-size:13px; color:var(--text-2);">請先點擊下方按鈕預覽並「另存為 PDF」，確認後再點擊「上傳至雲端硬碟」。</p>
+      <div style="padding:14px;background:#fff;border:1px solid #ccc;border-radius:8px;margin-bottom:10px">
+        <p style="color:var(--green);font-weight:600">✅ PDF 已產生</p>
+        <p style="font-size:13px;color:var(--text-2)">可先點「預覽 PDF」確認內容，再點「上傳至雲端硬碟」送出。</p>
       </div>
-      <button class="btn btn-download" onclick="manualPrint()">點此開啟預覽並列印</button>
-    `;
+      <button class="btn btn-download" onclick="previewPDF()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+        預覽 PDF
+      </button>`;
     document.getElementById(btnId).classList.remove('hidden');
-    toast('預覽稿已生成，請手動點擊預覽按鈕', 'ok');
-  } catch(e) { hideOv(); toast('生成失敗','err'); }
+    toast('PDF 已產生，可預覽後上傳', 'ok');
+
+  } catch(e) {
+    const c = document.getElementById('__pdfRender');
+    if (c) document.body.removeChild(c);
+    hideOv();
+    toast('PDF 生成失敗：' + e.message, 'err');
+  }
 }
 
-function manualPrint() {
-  const printWin = window.open('', '_blank');
-  printWin.document.write(S.G_PDF_HTML);
-  printWin.document.close();
-  setTimeout(() => { printWin.focus(); printWin.print(); }, 500);
+function previewPDF() {
+  if (!S.G_PDF_B64) { toast('請先生成 PDF', 'err'); return; }
+  const bytes = atob(S.G_PDF_B64);
+  const buf = new Uint8Array(bytes.length);
+  for (let i = 0; i < bytes.length; i++) buf[i] = bytes.charCodeAt(i);
+  const url = URL.createObjectURL(new Blob([buf], { type:'application/pdf' }));
+  window.open(url, '_blank');
 }
 
 // ═══════════════════════════════════════════════════
-// 上傳至雲端
+// 上傳至雲端（送真實 PDF base64）
 // ═══════════════════════════════════════════════════
-async function uploadToCloud(){
-  if(!S.G_PDF_B64){ toast('請先生成 PDF','err'); return; }
-  const actionMap = {before:'submit', mid:'submitMid', after:'submitAfter'};
-  showOv('上傳中…','寫入 Google Sheets',[{id:'u1',label:'雲端作業'}]);
-  try{
-    ovStep('u1','active');
-    const f = S.submitFields;
-    const phLbl = {before:'作業前',mid:'作業中',after:'作業後'}[S.phase];
+async function uploadToCloud(phase) {
+  if (!S.G_PDF_B64) { toast('請先生成 PDF', 'err'); return; }
+  const f = phase === 'before' ? getFields() : (S.baseFields || {});
+  showOv('上傳中...', '寫入 Google Sheets', [{ id:'u1', label:'雲端作業' }]);
+  try {
+    ovStep('u1', 'active');
+    const actionMap = { before: 'submit', mid: 'submitMid', after: 'submitAfter' };
+    const phLbl = { before:'作業前', mid:'作業中', after:'作業後' }[phase];
     const payload = {
-      action:      actionMap[S.phase],
-      phase:       S.phase,
-      fields:      f,
-      pdfBase64:   S.G_PDF_B64,   // ← 真實 PDF 二進位 base64
+      action: actionMap[phase],
+      phase:  phase,
+      fields: f,
+      pdfBase64:   S.G_PDF_B64,
       pdfFilename: `局限作業_${phLbl}_${f.company||''}_${f.inspector||''}.pdf`
     };
     const res = await gasPost(payload);
-    if(res.error) throw new Error(res.error);
-    ovStep('u1','done'); hideOv();
-
-    document.getElementById('doneTitle').textContent = `${phLbl}通報上傳成功`;
-    document.getElementById('doneSub').textContent   = `${phLbl} PDF 已存入 Google Sheets 及雲端硬碟`;
-    hideAll(); show('pg3');
-    toast('通報成功','ok');
-  }catch(e){ hideOv(); toast('上傳失敗: '+e.message,'err'); }
+    if (res.error) throw new Error(res.error);
+    ovStep('u1', 'done');
+    hideOv();
+    showDone(phase);
+    toast('通報成功', 'ok');
+  } catch(e) { hideOv(); toast('上傳失敗: ' + e.message, 'err'); }
 }
 
 // ═══════════════════════════════════════════════════
 // 查詢邏輯
 // ═══════════════════════════════════════════════════
 async function doQuery() {
-  const co = document.getElementById('qCo').value;
-  const prj = document.getElementById('qPrj').value;
-  const phase = document.getElementById('qPhase').value;
-  const insp = document.getElementById('qInsp').value.trim();
-  const dt = document.getElementById('qDate').value;
+  const co=document.getElementById('qCo').value, prj=document.getElementById('qPrj').value;
+  const phase=document.getElementById('qPhase').value, insp=document.getElementById('qInsp').value.trim();
+  const dt=document.getElementById('qDate').value;
   showOv('查詢中...','從 Google Sheets 取得資料',[]);
   try {
     const params = new URLSearchParams({ action:'query', company:co, project:prj, inspector:insp, date:dt, phase });
-    const res = await fetch(`${GAS_URL}?${params}`);
-    const rows = await res.json();
+    const rows = await fetch(`${GAS_URL}?${params}`).then(r=>r.json());
     renderResults(rows);
   } catch(e) { toast('查詢失敗','err'); }
   hideOv();
 }
-
 function renderResults(rows) {
   const el = document.getElementById('qResults');
-  if (!rows || !rows.length) { el.innerHTML = '<div class="empty"><div class="ei">📭</div>查無符合條件記錄</div>'; return; }
-
-  const phaseInfo = {
-    before: { label:'作業前', cls:'before' },
-    mid:    { label:'作業中', cls:'mid' },
-    after:  { label:'作業後', cls:'after' },
-  };
-
-  el.innerHTML = `
-    <table>
-      <thead><tr>
-        <th>上傳時機</th><th>公司</th><th>工程</th><th>檢驗員</th>
-        <th>作業地點</th><th>詳細位置</th><th>開始</th><th>結束</th><th>通報紀錄</th>
-      </tr></thead>
-      <tbody>
-        ${rows.map(r => {
-          const pi = phaseInfo[r.phase] || { label: r.phase || '—', cls: '' };
-          const hasPdf = r.pdfUrl && r.pdfUrl.startsWith('http');
-          const pdfLink = hasPdf
-            ? `<a href="${r.pdfUrl}" target="_blank" class="pdf-btn">
-                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>查看 PDF
-               </a>`
-            : `<span style="color:var(--text-3);font-size:.76rem;">無檔案</span>`;
-          return `<tr>
-            <td><span class="phase-tag ${pi.cls}">${pi.label}</span></td>
-            <td>${r.company}</td><td>${r.project}</td><td>${r.inspector}</td>
-            <td>${r.workArea}</td><td>${r.workDetail||'—'}</td>
-            <td class="mono">${(r.startTime||'').replace('T',' ')}</td>
-            <td class="mono">${(r.endTime||'').replace('T',' ')}</td>
-            <td>${pdfLink}</td>
-          </tr>`;
-        }).join('')}
-      </tbody>
-    </table>`;
+  if (!rows || !rows.length) { el.innerHTML='<div class="empty"><div class="ei">📭</div>查無符合條件記錄</div>'; return; }
+  const PI = { before:{label:'作業前',cls:'before'}, mid:{label:'作業中',cls:'mid'}, after:{label:'作業後',cls:'after'} };
+  el.innerHTML = `<table><thead><tr><th>上傳時機</th><th>公司</th><th>工程</th><th>檢驗員</th><th>作業地點</th><th>詳細位置</th><th>開始</th><th>結束</th><th>通報紀錄</th></tr></thead><tbody>
+    ${rows.map(r=>{
+      const pi=PI[r.phase]||{label:r.phase||'—',cls:''};
+      const link=r.pdfUrl&&r.pdfUrl.startsWith('http')
+        ?`<a href="${r.pdfUrl}" target="_blank" class="pdf-btn"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>查看 PDF</a>`
+        :`<span style="color:var(--text-3);font-size:.76rem">無檔案</span>`;
+      return `<tr><td><span class="phase-tag ${pi.cls}">${pi.label}</span></td><td>${r.company}</td><td>${r.project}</td><td>${r.inspector}</td><td>${r.workArea}</td><td>${r.workDetail||'—'}</td><td class="mono">${(r.startTime||'').replace('T',' ')}</td><td class="mono">${(r.endTime||'').replace('T',' ')}</td><td>${link}</td></tr>`;
+    }).join('')}
+  </tbody></table>`;
 }
 
 // ═══════════════════════════════════════════════════
 // 公用工具
 // ═══════════════════════════════════════════════════
-async function gasPost(payload) {
-  return fetch(GAS_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload) }).then(r=>r.json());
-}
-function fileToBase64(file) {
-  return new Promise((res,rej) => { const r = new FileReader(); r.onload = e => res({ dataUrl:e.target.result, type:file.type, name:file.name }); r.readAsDataURL(file); });
-}
-function fillSelect(id, arr, ph, blank=true) {
-  const s = document.getElementById(id);
-  s.innerHTML = `<option value="">${ph}</option>`;
-  arr.forEach(v => { const o=document.createElement('option'); o.value=v; o.textContent=v; s.appendChild(o); });
-}
-function switchView(v) {
-  document.getElementById('formView').classList.toggle('hidden', v !== 'form');
-  document.getElementById('queryView').classList.toggle('hidden', v !== 'query');
-  document.getElementById('navForm').classList.toggle('on', v === 'form');
-  document.getElementById('navQuery').classList.toggle('on', v === 'query');
-}
-function resetAll() { location.reload(); }
-function showOv(t,s,st) {
-  document.getElementById('ovTitle').textContent=t;
-  document.getElementById('ovSub').textContent=s;
-  document.getElementById('ovSteps').innerHTML=st.map(i=>`<div class="ov-step" id="${i.id}"><div class="ov-step-dot"></div>${i.label}</div>`).join('');
-  document.getElementById('overlay').classList.add('on');
-}
-function ovStep(id,s) { const el=document.getElementById(id); if(el) el.className=`ov-step ${s}`; }
-function hideOv() { document.getElementById('overlay').classList.remove('on'); }
-function toast(m,t='') { const c=document.getElementById('toasts'), el=document.createElement('div'); el.className=`toast ${t}`; el.textContent=m; c.appendChild(el); setTimeout(()=>el.remove(),4000); }
-const show = id => document.getElementById(id)?.classList.remove('hidden');
-const hide = id => document.getElementById(id)?.classList.add('hidden');
-function clearQ() {
-  ['qCo','qPrj','qPhase'].forEach(id => document.getElementById(id).selectedIndex = 0);
-  document.getElementById('qInsp').value='';
-  document.getElementById('qDate').value='';
-}
+async function gasPost(payload){ return fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)}).then(r=>r.json()); }
+function fileToBase64(file){ return new Promise(res=>{ const r=new FileReader(); r.onload=e=>res({dataUrl:e.target.result,type:file.type,name:file.name}); r.readAsDataURL(file); }); }
+function fillSelect(id,arr,ph,blank=true){ const s=document.getElementById(id); s.innerHTML=`<option value="">${ph}</option>`; arr.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;s.appendChild(o);}); }
+function switchView(v){ document.getElementById('formView').classList.toggle('hidden',v!=='form'); document.getElementById('queryView').classList.toggle('hidden',v!=='query'); document.getElementById('navForm').classList.toggle('on',v==='form'); document.getElementById('navQuery').classList.toggle('on',v==='query'); }
+function resetAll(){ location.reload(); }
+function showOv(t,s,st){ document.getElementById('ovTitle').textContent=t; document.getElementById('ovSub').textContent=s; document.getElementById('ovSteps').innerHTML=st.map(i=>`<div class="ov-step" id="${i.id}"><div class="ov-step-dot"></div>${i.label}</div>`).join(''); document.getElementById('overlay').classList.add('on'); }
+function ovStep(id,s){ const el=document.getElementById(id); if(el)el.className=`ov-step ${s}`; }
+function hideOv(){ document.getElementById('overlay').classList.remove('on'); }
+function toast(m,t=''){ const c=document.getElementById('toasts'),el=document.createElement('div'); el.className=`toast ${t}`; el.textContent=m; c.appendChild(el); setTimeout(()=>el.remove(),4000); }
+const show=id=>document.getElementById(id)?.classList.remove('hidden');
+const hide=id=>document.getElementById(id)?.classList.add('hidden');
+function clearQ(){ ['qCo','qPrj','qPhase'].forEach(id=>document.getElementById(id).selectedIndex=0); document.getElementById('qInsp').value=''; document.getElementById('qDate').value=''; }
 </script>
+
 </body>
 </html>
