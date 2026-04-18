@@ -369,7 +369,7 @@ tr:hover td{background:var(--surface-2)}
           <div class="fg"><label>檢驗員姓名<span class="r">*</span></label><input type="text" id="fInspector" class="inp" placeholder="請輸入姓名"></div>
           <!-- ★ 優化二：缺氧作業主管 & 聯絡方式 -->
           <div class="fg"><label>缺氧作業主管<span class="r">*</span></label><input type="text" id="fOxygenSupervisor" class="inp" placeholder="請輸入姓名"></div>
-          <div class="fg"><label>聯絡方式（手機）<span class="r">*</span></label><input type="tel" id="fPhone" class="inp" placeholder="例：0912-345-678"></div>
+          <div class="fg"><label>聯絡方式（手機）<span class="r">*</span></label><input type="tel" id="fPhone" class="inp" placeholder="例：0912-345-678" oninput="validatePhone(this)" onblur="validatePhone(this)"><div class="c-hint" id="hintPhone">需為 09 開頭的 10 碼數字（可含 -）</div></div>
         </div>
         <div class="sec"><span>作業時間</span></div>
         <div class="g2">
@@ -568,11 +568,17 @@ tr:hover td{background:var(--surface-2)}
         <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       </div>
       <div><h2>查詢通報記錄</h2><p>設定條件後交叉篩選，可依上傳時機點篩選</p></div>
-      <!-- ★ 優化三：未完成提醒按鈕 -->
-      <button class="btn btn-amber" style="margin-left:auto" onclick="checkIncomplete()">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
-        當日未完成通報提醒
-      </button>
+      <!-- ★ 優化：未完成提醒列（含日期選擇） -->
+      <div style="margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0">
+        <div class="fg" style="margin:0">
+          <label style="font-size:.72rem;color:var(--text-3)">查詢日期（空白=今日）</label>
+          <input type="date" class="inp" id="incDate" style="width:160px;padding:6px 10px;font-size:.82rem">
+        </div>
+        <button class="btn btn-amber" style="margin-top:18px" onclick="checkIncomplete()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+          未完成通報提醒
+        </button>
+      </div>
     </div>
     <div class="q-bar">
       <div class="fg"><label>承攬商公司</label><div class="sw"><select class="inp" id="qCo"><option value="">— 全部 —</option></select></div></div>
@@ -593,7 +599,7 @@ tr:hover td{background:var(--surface-2)}
     <div class="ap-hd">
       <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
       <div>
-        <h3>當日未完成通報提醒</h3>
+        <h3 id="incompletePanelTitle">未完成通報提醒</h3>
         <p id="incompleteDateLabel">— 年 — 月 — 日</p>
       </div>
       <button class="btn btn-ghost" style="margin-left:auto;font-size:.76rem;padding:4px 10px" onclick="hide('incompletePanel')">關閉</button>
@@ -610,7 +616,7 @@ tr:hover td{background:var(--surface-2)}
 // ═══════════════════════════════════════════════════
 // ★ 配置
 // ═══════════════════════════════════════════════════
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbwpsI9vC4gO7uUP1i9FcL63oHpsAW7kGBXADH2k1cjz9iWMXedDJLaKktbUij5JE5Gg/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyqjstCUdSL4htPXnhqWwC3pFcYHC-fGZXpo1f1GxtjEwtwZj_0-0XwGahwKvyDcFe3/exec';
 
 const ITEMS_BEFORE = [
   { k:'kaohsiung',   label:'高市檢申報擷取畫面' },
@@ -787,6 +793,39 @@ function setHint(id,msg,type){ const el=document.getElementById(id); if(el){el.t
 function showManual(){ S.isManual=true; document.getElementById('manualWrap').classList.add('show'); document.getElementById('btnManual').classList.add('hidden'); }
 function hideManual(){ S.isManual=false; document.getElementById('manualWrap').classList.remove('show'); document.getElementById('btnManual').classList.remove('hidden'); updateProceedBtn(); }
 
+// ★ 手機號碼驗證：去除 - 後須為 09 開頭 10 碼純數字
+function validatePhone(el) {
+  const raw    = el.value;
+  const digits = raw.replace(/-/g, '');               // 去除所有 -
+  const hint   = document.getElementById('hintPhone');
+  const ok     = /^09\d{8}$/.test(digits);
+  if (!raw) {
+    el.style.borderColor = '';
+    if (hint) { hint.textContent = '需為 09 開頭的 10 碼數字（可含 -）'; hint.className = 'c-hint'; }
+    return false;
+  }
+  if (ok) {
+    el.style.borderColor = 'var(--green)';
+    if (hint) { hint.textContent = '✓ 格式正確'; hint.className = 'c-hint filled'; }
+    return true;
+  } else {
+    el.style.borderColor = 'var(--red)';
+    if (hint) {
+      if (!digits.startsWith('09')) {
+        hint.textContent = '⚠ 必須以 09 開頭';
+      } else if (digits.length < 10) {
+        hint.textContent = `⚠ 還差 ${10 - digits.length} 碼（目前 ${digits.length} 碼）`;
+      } else if (digits.length > 10) {
+        hint.textContent = `⚠ 超過 10 碼（目前 ${digits.length} 碼）`;
+      } else {
+        hint.textContent = '⚠ 包含非數字字元';
+      }
+      hint.className = 'c-hint err';
+    }
+    return false;
+  }
+}
+
 // ★ 優化二：getFields 加入新欄位
 function getFields() {
   const base = S.pg0Fields || {};
@@ -855,8 +894,11 @@ function rmFile(k,i,phase){
 // ═══════════════════════════════════════════════════
 async function toPage2() {
   const f = getFields();
-  if (!f.inspector || !f.oxygenSupervisor || !f.phone || !f.startTime || !f.endTime || !f.workArea || !f.workDetail) {
-    toast('請填寫所有必填欄位（檢驗員、缺氧作業主管、聯絡方式、時間、地點）','err'); return;
+  if (!f.inspector || !f.oxygenSupervisor || !f.startTime || !f.endTime || !f.workArea || !f.workDetail) {
+    toast('請填寫所有必填欄位（檢驗員、缺氧作業主管、時間、地點）','err'); return;
+  }
+  if (!validatePhone(document.getElementById('fPhone'))) {
+    toast('手機號碼格式錯誤，需為 09 開頭的 10 碼數字','err'); return;
   }
   S.baseFields = { ...f };
   hide('pg1'); show('pg2'); window.scrollTo(0,0);
@@ -1060,29 +1102,34 @@ function renderResults(rows) {
 }
 
 // ═══════════════════════════════════════════════════
-// ★ 優化三：當日未完成通報提醒
+// ★ 優化：未完成通報提醒（支援使用者自選日期）
 // ═══════════════════════════════════════════════════
 async function checkIncomplete() {
-  const today = new Date().toISOString().slice(0,10);
-  const panel = document.getElementById('incompletePanel');
-  const bd    = document.getElementById('incompleteBd');
-  const dtLbl = document.getElementById('incompleteDateLabel');
+  // 讀取使用者輸入的日期，若空白則預設今日
+  const inputDate = document.getElementById('incDate').value;
+  const targetDate = inputDate || new Date().toISOString().slice(0,10);
+
+  const panel  = document.getElementById('incompletePanel');
+  const bd     = document.getElementById('incompleteBd');
+  const dtLbl  = document.getElementById('incompleteDateLabel');
+  const title  = document.getElementById('incompletePanelTitle');
 
   // 格式化顯示日期
-  const d = new Date(today + 'T00:00:00');
+  const d = new Date(targetDate + 'T00:00:00');
+  const isToday = targetDate === new Date().toISOString().slice(0,10);
   dtLbl.textContent = `${d.getFullYear()} 年 ${d.getMonth()+1} 月 ${d.getDate()} 日`;
+  title.textContent = isToday ? '當日未完成通報提醒' : `${d.getMonth()+1}/${d.getDate()} 通報完成狀況`;
 
   panel.classList.remove('hidden');
   bd.innerHTML = '<div class="empty"><div class="ei">⏳</div>載入中…</div>';
   panel.scrollIntoView({ behavior:'smooth', block:'start' });
 
   try {
-    // 拉今日所有通報記錄（不限 phase）
-    const params = new URLSearchParams({ action:'query', date: today });
+    const params = new URLSearchParams({ action:'query', date: targetDate });
     const rows = await fetch(`${GAS_URL}?${params}`).then(r=>r.json());
 
     if (!rows || rows.length === 0) {
-      bd.innerHTML = '<div class="empty"><div class="ei">📭</div>今日尚無任何通報記錄</div>';
+      bd.innerHTML = `<div class="empty"><div class="ei">📭</div>${isToday ? '今日' : '該日期'}尚無任何通報記錄</div>`;
       return;
     }
 
@@ -1094,12 +1141,12 @@ async function checkIncomplete() {
       if (r.phase) map[key].phases.add(r.phase);
     });
 
-    const entries = Object.values(map);
+    const entries    = Object.values(map);
     const incomplete = entries.filter(e => !e.phases.has('before') || !e.phases.has('mid') || !e.phases.has('after'));
     const complete   = entries.filter(e =>  e.phases.has('before') &&  e.phases.has('mid') &&  e.phases.has('after'));
 
     if (incomplete.length === 0) {
-      bd.innerHTML = `<div style="padding:16px;text-align:center;color:var(--green);font-weight:700;font-size:.95rem">🎉 今日所有廠商通報均已完整（共 ${complete.length} 筆）</div>`;
+      bd.innerHTML = `<div style="padding:16px;text-align:center;color:var(--green);font-weight:700;font-size:.95rem">🎉 ${isToday ? '今日' : '該日期'}所有廠商通報均已完整（共 ${complete.length} 筆）</div>`;
       return;
     }
 
