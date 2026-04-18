@@ -138,22 +138,22 @@ select.inp:disabled{cursor:not-allowed}
 .up-box:hover{border-color:var(--border-focus);background:var(--blue-lt)}
 .up-box.done{border-style:solid;border-color:var(--green);background:var(--green-lt)}
 .up-box.err{border-color:var(--red)!important;background:var(--red-lt)!important}
-.up-lbl{font-size:.97rem;font-weight:700;color:var(--text-2);margin-bottom:9px;display:flex;align-items:center;gap:6px}
-.up-num{width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;font-size:.78rem;font-weight:700;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.up-lbl{font-size:.79rem;font-weight:600;color:var(--text-2);margin-bottom:9px;display:flex;align-items:center;gap:6px}
+.up-num{width:19px;height:19px;border-radius:50%;background:var(--blue);color:#fff;font-size:.65rem;font-weight:700;flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .up-box.done .up-num{background:var(--green)}
-.up-zone{border:1px dashed var(--border);border-radius:var(--r-sm);padding:14px 10px;text-align:center;cursor:pointer;background:var(--surface);transition:border-color .15s}
+.up-zone{border:1px dashed var(--border);border-radius:var(--r-sm);padding:10px 8px;text-align:center;cursor:pointer;background:var(--surface);transition:border-color .15s}
 .up-zone:hover{border-color:var(--blue)}
 .up-zone input{display:none}
-.up-zone .zi{font-size:1.6rem;margin-bottom:5px}
-.up-zone .zt{font-size:.88rem;color:var(--text-3)}
-.up-zone .za{font-size:.88rem;color:var(--blue);font-weight:600;margin-top:4px}
+.up-zone .zi{font-size:1.3rem;margin-bottom:3px}
+.up-zone .zt{font-size:.7rem;color:var(--text-3)}
+.up-zone .za{font-size:.74rem;color:var(--blue);font-weight:600;margin-top:2px}
 .previews{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
 .prev-item{position:relative;border-radius:var(--r-sm);overflow:hidden;border:1px solid var(--border)}
-.prev-item img{width:64px;height:64px;object-fit:cover;display:block}
-.prev-item .fi{width:64px;height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--blue-lt);font-size:1.2rem;gap:2px}
-.prev-item .fn{font-size:.66rem;color:var(--text-2);text-align:center;padding:0 3px;max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.rm{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font-size:.66rem;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.req-tag{font-size:.76rem;background:var(--red-lt);color:var(--red);border-radius:3px;padding:2px 7px;font-weight:700}
+.prev-item img{width:54px;height:54px;object-fit:cover;display:block}
+.prev-item .fi{width:54px;height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--blue-lt);font-size:1.1rem;gap:2px}
+.prev-item .fn{font-size:.58rem;color:var(--text-2);text-align:center;padding:0 3px;max-width:54px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rm{position:absolute;top:2px;right:2px;width:15px;height:15px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font-size:.58rem;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.req-tag{font-size:.62rem;background:var(--red-lt);color:var(--red);border-radius:3px;padding:1px 5px;font-weight:600}
 .done-wrap{text-align:center;padding:48px 28px}
 .done-icon{width:68px;height:68px;border-radius:50%;background:var(--green-lt);border:2px solid var(--green);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:1.8rem}
 .done-title{font-size:1.15rem;font-weight:700;margin-bottom:8px}
@@ -950,41 +950,41 @@ async function exportPDF(phase) {
     const phaseLabel  = phaseLabels[phase] || '';
     const phColor = { before:'#2952c8', mid:'#6d28d9', after:'#0d7490' }[phase];
     const phBg    = { before:'#eef2fc', mid:'#f5f3ff', after:'#ecfeff' }[phase];
-    const TH = 'border:1px solid #cbd5e1;padding:10px 12px;background:#f8fafc;color:#334155;width:22%;vertical-align:top;font-size:15px';
-    const TD = 'border:1px solid #cbd5e1;padding:10px 12px;vertical-align:top;font-size:15px';
+    const TH = 'border:1px solid #cbd5e1;padding:8px 10px;background:#f8fafc;color:#334155;width:22%;vertical-align:top';
+    const TD = 'border:1px solid #cbd5e1;padding:8px 10px;vertical-align:top';
 
     let imgRows = '';
     for (const item of items) {
       (imagePreviews[item.k] || []).forEach(img => {
-        imgRows += `<div style="border:1px solid #ddd;padding:8px;text-align:center;margin-bottom:10px">
-          <img src="${img.dataUrl}" style="max-width:100%;max-height:240px;object-fit:contain;display:block;margin:0 auto">
-          <div style="font-size:15px;font-weight:bold;margin-top:7px;color:#334155">${item.label}</div>
+        imgRows += `<div style="border:1px solid #ddd;padding:6px;text-align:center;margin-bottom:8px">
+          <img src="${img.dataUrl}" style="max-width:100%;max-height:220px;object-fit:contain;display:block;margin:0 auto">
+          <div style="font-size:12px;font-weight:bold;margin-top:5px;color:#334155">${item.label}</div>
         </div>`;
       });
     }
 
     const container = document.createElement('div');
     container.id = '__pdfRender';
-    container.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;background:#fff;padding:40px;font-family:Arial,sans-serif;font-size:16px;line-height:1.7;color:#111;box-sizing:border-box';
+    container.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;background:#fff;padding:40px;font-family:Arial,sans-serif;font-size:13px;line-height:1.6;color:#111;box-sizing:border-box';
     container.innerHTML = `
-      <div style="text-align:center;margin-bottom:28px;border-bottom:3px solid ${phColor};padding-bottom:16px">
-        <h1 style="margin:0;color:#1d3d9e;font-size:28px;letter-spacing:.02em">局限空間作業通報書</h1>
-        <div style="font-size:15px;color:#555;margin-top:6px">Confined Space Work Notification Report</div>
-        <span style="display:inline-block;margin-top:10px;padding:4px 18px;border-radius:20px;font-size:15px;font-weight:700;background:${phBg};color:${phColor};border:1px solid ${phColor}">📌 ${phaseLabel}通報</span>
+      <div style="text-align:center;margin-bottom:24px;border-bottom:3px solid ${phColor};padding-bottom:14px">
+        <h1 style="margin:0;color:#1d3d9e;font-size:22px">局限空間作業通報書</h1>
+        <div style="font-size:12px;color:#555;margin-top:4px">Confined Space Work Notification Report</div>
+        <span style="display:inline-block;margin-top:8px;padding:3px 14px;border-radius:20px;font-size:12px;font-weight:700;background:${phBg};color:${phColor};border:1px solid ${phColor}">📌 ${phaseLabel}通報</span>
       </div>
-      <div style="text-align:right;font-size:13px;color:#888;margin-bottom:14px">產出時間：${new Date().toLocaleString('zh-TW')}</div>
-      <div style="background:#eef2fc;font-weight:bold;color:#2952c8;padding:9px 14px;margin-bottom:10px;border-left:6px solid #2952c8;font-size:16px">基本資料</div>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:24px;font-size:15px">
+      <div style="text-align:right;font-size:11px;color:#888;margin-bottom:12px">產出時間：${new Date().toLocaleString('zh-TW')}</div>
+      <div style="background:#eef2fc;font-weight:bold;color:#2952c8;padding:7px 12px;margin-bottom:8px;border-left:5px solid #2952c8;font-size:13px">基本資料</div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:20px;font-size:12px">
         <tr><th style="${TH}">承攬商公司</th><td style="${TD}">${f.company||'—'}</td><th style="${TH}">工程名稱</th><td style="${TD}">${f.project||'—'}</td></tr>
         <tr><th style="${TH}">主辦部門</th><td style="${TD}">${f.dept||'—'}</td><th style="${TH}">主辦課別</th><td style="${TD}">${f.section||'—'}</td></tr>
         <tr><th style="${TH}">檢驗員</th><td style="${TD}">${f.inspector||'—'}</td><th style="${TH}">作業區域</th><td style="${TD}">${f.workArea||'—'}</td></tr>
-        <tr><th style="${TH}">缺氧作業主管</th><td style="${TD};font-weight:bold;color:#b45309;font-size:15px">${f.oxygenSupervisor||'—'}</td><th style="${TH}">聯絡方式（手機）</th><td style="${TD};font-weight:bold;color:#b45309;font-size:15px">${f.phone||'—'}</td></tr>
+        <tr><th style="${TH}">缺氧作業主管</th><td style="${TD};font-weight:bold;color:#b45309">${f.oxygenSupervisor||'—'}</td><th style="${TH}">聯絡方式（手機）</th><td style="${TD};font-weight:bold;color:#b45309">${f.phone||'—'}</td></tr>
         <tr><th style="${TH}">開始時間</th><td style="${TD}">${(f.startTime||'').replace('T',' ')}</td><th style="${TH}">結束時間</th><td style="${TD}">${(f.endTime||'').replace('T',' ')}</td></tr>
         <tr><th style="${TH}">詳細位置</th><td style="${TD}" colspan="3">${f.workDetail||'—'}</td></tr>
-        <tr><th style="${TH}">上傳時機</th><td style="${TD};font-weight:700;font-size:15px" colspan="3">${phaseLabel}通報</td></tr>
+        <tr><th style="${TH}">上傳時機</th><td style="${TD};font-weight:700" colspan="3">${phaseLabel}通報</td></tr>
       </table>
-      <div style="background:#eef2fc;font-weight:bold;color:#2952c8;padding:9px 14px;margin-bottom:14px;border-left:6px solid #2952c8;font-size:16px">查核照片與附件（${phaseLabel}）</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">${imgRows}</div>`;
+      <div style="background:#eef2fc;font-weight:bold;color:#2952c8;padding:7px 12px;margin-bottom:12px;border-left:5px solid #2952c8;font-size:13px">查核照片與附件（${phaseLabel}）</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">${imgRows}</div>`;
     document.body.appendChild(container);
     ovStep('p2', 'done');
 
