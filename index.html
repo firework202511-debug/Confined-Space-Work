@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
@@ -130,6 +129,8 @@ select.inp:disabled{cursor:not-allowed}
 .btn-success:hover{background:#0a6349}
 .btn-download{background:var(--amber-lt);color:var(--amber);border:1.5px solid var(--amber)}
 .btn-download:hover{background:var(--amber);color:#fff}
+.btn-amber{background:var(--amber);color:#fff}
+.btn-amber:hover{background:#9a4508}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 .btn-row{display:flex;gap:9px;justify-content:flex-end;margin-top:26px;padding-top:18px;border-top:1px solid var(--border)}
 .upload-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
@@ -195,6 +196,22 @@ tr:hover td{background:var(--surface-2)}
 @keyframes tIn{from{transform:translateX(32px);opacity:0}to{transform:none;opacity:1}}
 .hidden{display:none!important}
 .mono{font-family:'Courier New',monospace;font-size:.78rem}
+/* 提醒面板 */
+.alert-panel{background:var(--surface);border:1px solid var(--amber);border-radius:var(--r-lg);overflow:hidden;margin-top:20px}
+.alert-panel .ap-hd{background:var(--amber-lt);padding:14px 20px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--amber)}
+.alert-panel .ap-hd h3{font-size:.9rem;font-weight:700;color:var(--amber)}
+.alert-panel .ap-hd p{font-size:.73rem;color:var(--amber);margin-top:2px;opacity:.85}
+.alert-panel .ap-bd{padding:16px 20px}
+.incomplete-item{display:flex;align-items:flex-start;gap:12px;padding:10px 14px;border-radius:var(--r-sm);margin-bottom:8px;background:var(--surface-2);border:1px solid var(--border)}
+.incomplete-item:last-child{margin-bottom:0}
+.inc-ico{font-size:1.1rem;flex-shrink:0;margin-top:2px}
+.inc-body{flex:1}
+.inc-co{font-size:.86rem;font-weight:700;color:var(--text-1)}
+.inc-prj{font-size:.75rem;color:var(--text-2);margin-top:2px}
+.inc-tags{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.inc-tag{font-size:.66rem;font-weight:700;padding:2px 8px;border-radius:20px}
+.inc-tag.ok{background:var(--green-lt);color:var(--green)}
+.inc-tag.miss{background:var(--red-lt);color:var(--red)}
 @media(max-width:680px){
   .g2,.g3,.upload-grid,.manual-grid,.phase-grid,.auto-info{grid-template-columns:1fr}
   .wrap{padding:14px 14px 60px}
@@ -237,7 +254,6 @@ tr:hover td{background:var(--surface-2)}
 <div id="formView">
 
   <!-- PAGE 0 -->
-
   <div id="pg0">
     <div class="phase-selector">
       <div class="card-hd">
@@ -307,8 +323,13 @@ tr:hover td{background:var(--surface-2)}
             <div class="phase-badge">▶ 作業後通報</div>
           </div>
         </div>
+        <!-- 作業前未填警告 -->
         <div id="noBeforeRecordWarn" class="hidden" style="margin-top:16px;padding:14px 18px;background:var(--amber-lt);border:1.5px solid var(--amber);border-radius:var(--r);font-size:.84rem;color:var(--amber)">
           ⚠️ 今日尚未找到此公司／工程的<strong>作業前通報</strong>，請先選擇「作業前」完成通報後再進行作業中／作業後通報。
+        </div>
+        <!-- ★ 優化一：作業中未填警告 -->
+        <div id="noMidRecordWarn" class="hidden" style="margin-top:16px;padding:14px 18px;background:var(--red-lt);border:1.5px solid var(--red);border-radius:var(--r);font-size:.84rem;color:var(--red)">
+          🚫 今日尚未找到此公司／工程的<strong>作業中通報</strong>，請先完成作業中通報後再進行作業後通報，以確保資料完整。
         </div>
         <div class="phase-proceed">
           <button class="btn btn-primary" id="btnPhaseNext" onclick="proceedFromPhase()" disabled>
@@ -321,7 +342,6 @@ tr:hover td{background:var(--surface-2)}
   </div>
 
   <!-- PAGE 1 BEFORE -->
-
   <div id="pg1" class="hidden">
     <div class="stepper phase-before" id="stepper1">
       <div class="st on" id="st1"><div class="st-dot">1</div><div class="st-txt">作業資料</div></div>
@@ -336,7 +356,7 @@ tr:hover td{background:var(--surface-2)}
         <div class="card-ico">
           <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
         </div>
-        <div><h2>作業前 — 填寫作業資料</h2><p>請填寫檢驗員、作業時間及地點</p></div>
+        <div><h2>作業前 — 填寫作業資料</h2><p>請填寫檢驗員、缺氧作業主管、作業時間及地點</p></div>
       </div>
       <div class="card-bd">
         <div class="auto-info" id="pg1BaseInfo" style="margin-bottom:18px">
@@ -344,9 +364,15 @@ tr:hover td{background:var(--surface-2)}
           <div class="ai-item"><div class="ai-lbl">工程名稱</div><div class="ai-val" id="pg1_project">—</div></div>
           <div class="ai-item"><div class="ai-lbl">主辦部門／課別</div><div class="ai-val" id="pg1_deptSection">—</div></div>
         </div>
-        <div class="sec"><span>作業人員與時間</span></div>
-        <div class="g3">
+        <div class="sec"><span>作業人員</span></div>
+        <div class="g2">
           <div class="fg"><label>檢驗員姓名<span class="r">*</span></label><input type="text" id="fInspector" class="inp" placeholder="請輸入姓名"></div>
+          <!-- ★ 優化二：缺氧作業主管 & 聯絡方式 -->
+          <div class="fg"><label>缺氧作業主管<span class="r">*</span></label><input type="text" id="fOxygenSupervisor" class="inp" placeholder="請輸入姓名"></div>
+          <div class="fg"><label>聯絡方式（手機）<span class="r">*</span></label><input type="tel" id="fPhone" class="inp" placeholder="例：0912-345-678"></div>
+        </div>
+        <div class="sec"><span>作業時間</span></div>
+        <div class="g2">
           <div class="fg"><label>開始時間<span class="r">*</span></label><input type="datetime-local" class="inp" id="fStart"></div>
           <div class="fg"><label>結束時間<span class="r">*</span></label><input type="datetime-local" class="inp" id="fEnd"></div>
         </div>
@@ -364,7 +390,6 @@ tr:hover td{background:var(--surface-2)}
   </div>
 
   <!-- PAGE 1 MID -->
-
   <div id="pg1mid" class="hidden">
     <div class="stepper" id="stepperMid">
       <div class="st on"><div class="st-dot">1</div><div class="st-txt">確認資料</div></div>
@@ -380,8 +405,11 @@ tr:hover td{background:var(--surface-2)}
         <div><h2>作業中 — 確認資料</h2><p>系統已從作業前記錄自動帶入以下資訊</p></div>
       </div>
       <div class="card-bd">
-        <div class="auto-info" id="midAutoInfo">
+        <!-- ★ 優化二：加入缺氧作業主管及聯絡方式 -->
+        <div class="auto-info" id="midAutoInfo" style="grid-template-columns:repeat(3,1fr)">
           <div class="ai-item"><div class="ai-lbl">檢驗員</div><div class="ai-val" id="mid_inspector">—</div></div>
+          <div class="ai-item"><div class="ai-lbl">缺氧作業主管</div><div class="ai-val" id="mid_oxygenSupervisor">—</div></div>
+          <div class="ai-item"><div class="ai-lbl">聯絡方式（手機）</div><div class="ai-val" id="mid_phone">—</div></div>
           <div class="ai-item"><div class="ai-lbl">作業區域</div><div class="ai-val" id="mid_workArea">—</div></div>
           <div class="ai-item"><div class="ai-lbl">詳細位置</div><div class="ai-val" id="mid_workDetail">—</div></div>
           <div class="ai-item"><div class="ai-lbl">承攬商公司</div><div class="ai-val" id="mid_company">—</div></div>
@@ -398,7 +426,6 @@ tr:hover td{background:var(--surface-2)}
   </div>
 
   <!-- PAGE 1 AFTER -->
-
   <div id="pg1after" class="hidden">
     <div class="stepper" id="stepperAfter">
       <div class="st on"><div class="st-dot">1</div><div class="st-txt">確認資料</div></div>
@@ -414,8 +441,11 @@ tr:hover td{background:var(--surface-2)}
         <div><h2>作業後 — 確認資料</h2><p>系統已從作業前記錄自動帶入以下資訊</p></div>
       </div>
       <div class="card-bd">
-        <div class="auto-info" id="afterAutoInfo">
+        <!-- ★ 優化二：加入缺氧作業主管及聯絡方式 -->
+        <div class="auto-info" id="afterAutoInfo" style="grid-template-columns:repeat(3,1fr)">
           <div class="ai-item"><div class="ai-lbl">檢驗員</div><div class="ai-val" id="after_inspector">—</div></div>
+          <div class="ai-item"><div class="ai-lbl">缺氧作業主管</div><div class="ai-val" id="after_oxygenSupervisor">—</div></div>
+          <div class="ai-item"><div class="ai-lbl">聯絡方式（手機）</div><div class="ai-val" id="after_phone">—</div></div>
           <div class="ai-item"><div class="ai-lbl">作業區域</div><div class="ai-val" id="after_workArea">—</div></div>
           <div class="ai-item"><div class="ai-lbl">詳細位置</div><div class="ai-val" id="after_workDetail">—</div></div>
           <div class="ai-item"><div class="ai-lbl">承攬商公司</div><div class="ai-val" id="after_company">—</div></div>
@@ -432,7 +462,6 @@ tr:hover td{background:var(--surface-2)}
   </div>
 
   <!-- PAGE 2 BEFORE -->
-
   <div id="pg2" class="hidden">
     <div class="stepper">
       <div class="st ok"><div class="st-dot">✓</div><div class="st-txt">基本資料</div></div>
@@ -460,7 +489,6 @@ tr:hover td{background:var(--surface-2)}
   </div>
 
   <!-- PAGE 2 MID -->
-
   <div id="pg2mid" class="hidden">
     <div class="stepper">
       <div class="st ok"><div class="st-dot">✓</div><div class="st-txt">確認資料</div></div>
@@ -488,7 +516,6 @@ tr:hover td{background:var(--surface-2)}
   </div>
 
   <!-- PAGE 2 AFTER -->
-
   <div id="pg2after" class="hidden">
     <div class="stepper">
       <div class="st ok"><div class="st-dot">✓</div><div class="st-txt">確認資料</div></div>
@@ -516,7 +543,6 @@ tr:hover td{background:var(--surface-2)}
   </div>
 
   <!-- PAGE 3 DONE -->
-
   <div id="pg3" class="hidden">
     <div class="card">
       <div class="done-wrap">
@@ -535,7 +561,6 @@ tr:hover td{background:var(--surface-2)}
 </div><!-- /formView -->
 
 <!-- QUERY VIEW -->
-
 <div id="queryView" class="hidden">
   <div class="card">
     <div class="card-hd">
@@ -543,6 +568,11 @@ tr:hover td{background:var(--surface-2)}
         <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       </div>
       <div><h2>查詢通報記錄</h2><p>設定條件後交叉篩選，可依上傳時機點篩選</p></div>
+      <!-- ★ 優化三：未完成提醒按鈕 -->
+      <button class="btn btn-amber" style="margin-left:auto" onclick="checkIncomplete()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+        當日未完成通報提醒
+      </button>
     </div>
     <div class="q-bar">
       <div class="fg"><label>承攬商公司</label><div class="sw"><select class="inp" id="qCo"><option value="">— 全部 —</option></select></div></div>
@@ -556,6 +586,21 @@ tr:hover td{background:var(--surface-2)}
       </div>
     </div>
     <div class="tbl-wrap" id="qResults"><div class="empty"><div class="ei">🔍</div>請設定條件後查詢</div></div>
+  </div>
+
+  <!-- ★ 優化三：未完成通報提醒面板 -->
+  <div id="incompletePanel" class="hidden alert-panel">
+    <div class="ap-hd">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+      <div>
+        <h3>當日未完成通報提醒</h3>
+        <p id="incompleteDateLabel">— 年 — 月 — 日</p>
+      </div>
+      <button class="btn btn-ghost" style="margin-left:auto;font-size:.76rem;padding:4px 10px" onclick="hide('incompletePanel')">關閉</button>
+    </div>
+    <div class="ap-bd" id="incompleteBd">
+      <div class="empty"><div class="ei">⏳</div>載入中…</div>
+    </div>
   </div>
 </div>
 
@@ -589,7 +634,7 @@ const S = {
   selectedPhase: null,
   pg0Fields: null,
   baseFields: null,
-  G_PDF_B64: '',   // ← 真實 PDF base64（修正：原為 G_PDF_HTML 存 HTML 字串）
+  G_PDF_B64: '',
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -604,6 +649,7 @@ function selectPhase(phase) {
   ['before','mid','after'].forEach(p => document.getElementById(`phaseCard_${p}`).classList.toggle('selected', p === phase));
   updateProceedBtn();
   document.getElementById('noBeforeRecordWarn').classList.add('hidden');
+  document.getElementById('noMidRecordWarn').classList.add('hidden');
 }
 function updateProceedBtn() {
   const ok = getPg0Company() && getPg0Project() && !!S.selectedPhase;
@@ -624,29 +670,64 @@ async function proceedFromPhase() {
     _showPg1BeforeInfo();
     if (S.isManual) { try { await gasPost({ action:'addDropdown', ...S.pg0Fields }); S.dd.push(S.pg0Fields); } catch(e) {} }
     hide('pg0'); show('pg1'); window.scrollTo(0,0);
-  } else {
+
+  } else if (S.selectedPhase === 'mid') {
+    // 僅需確認作業前存在
     showOv('查詢中...', '比對今日作業前通報', [{ id:'q1', label:'查詢 Google Sheets' }]);
     ovStep('q1', 'active');
     try {
       const today = new Date().toISOString().slice(0,10);
-      const params = new URLSearchParams({ action:'query', company, project, phase:'before', date: today });
-      const rows = await fetch(`${GAS_URL}?${params}`).then(r=>r.json());
+      const rows = await fetch(`${GAS_URL}?${new URLSearchParams({ action:'query', company, project, phase:'before', date: today })}`).then(r=>r.json());
       ovStep('q1', 'done'); hideOv();
       if (!rows || rows.length === 0) {
         document.getElementById('noBeforeRecordWarn').classList.remove('hidden');
+        document.getElementById('noMidRecordWarn').classList.add('hidden');
         toast('找不到今日作業前通報，請先完成作業前通報', 'warn');
         return;
       }
       const rec = rows[0];
-      S.baseFields = { company:rec.company, project:rec.project, dept:rec.dept, section:rec.section, inspector:rec.inspector, startTime:rec.startTime, endTime:rec.endTime, workArea:rec.workArea, workDetail:rec.workDetail };
+      S.baseFields = { company:rec.company, project:rec.project, dept:rec.dept, section:rec.section, inspector:rec.inspector, oxygenSupervisor:rec.oxygenSupervisor||'', phone:rec.phone||'', startTime:rec.startTime, endTime:rec.endTime, workArea:rec.workArea, workDetail:rec.workDetail };
       document.getElementById('noBeforeRecordWarn').classList.add('hidden');
-      hide('pg0');
-      if (S.selectedPhase === 'mid') { populateAutoInfo('mid'); show('pg1mid'); }
-      else { populateAutoInfo('after'); show('pg1after'); }
-      window.scrollTo(0,0);
+      document.getElementById('noMidRecordWarn').classList.add('hidden');
+      hide('pg0'); populateAutoInfo('mid'); show('pg1mid'); window.scrollTo(0,0);
+    } catch(err) { hideOv(); toast('查詢失敗: ' + err.message, 'err'); }
+
+  } else {
+    // ★ 優化一：作業後需確認作業前 & 作業中均已填寫
+    showOv('查詢中...', '比對今日通報記錄', [
+      { id:'q1', label:'查詢作業前記錄' },
+      { id:'q2', label:'查詢作業中記錄' }
+    ]);
+    ovStep('q1', 'active');
+    try {
+      const today = new Date().toISOString().slice(0,10);
+      const beforeRows = await fetch(`${GAS_URL}?${new URLSearchParams({ action:'query', company, project, phase:'before', date: today })}`).then(r=>r.json());
+      ovStep('q1', 'done');
+      if (!beforeRows || beforeRows.length === 0) {
+        hideOv();
+        document.getElementById('noBeforeRecordWarn').classList.remove('hidden');
+        document.getElementById('noMidRecordWarn').classList.add('hidden');
+        toast('找不到今日作業前通報，請先完成作業前通報', 'warn');
+        return;
+      }
+      ovStep('q2', 'active');
+      const midRows = await fetch(`${GAS_URL}?${new URLSearchParams({ action:'query', company, project, phase:'mid', date: today })}`).then(r=>r.json());
+      ovStep('q2', 'done'); hideOv();
+      if (!midRows || midRows.length === 0) {
+        document.getElementById('noBeforeRecordWarn').classList.add('hidden');
+        document.getElementById('noMidRecordWarn').classList.remove('hidden');
+        toast('找不到今日作業中通報，請先完成作業中通報', 'warn');
+        return;
+      }
+      const rec = beforeRows[0];
+      S.baseFields = { company:rec.company, project:rec.project, dept:rec.dept, section:rec.section, inspector:rec.inspector, oxygenSupervisor:rec.oxygenSupervisor||'', phone:rec.phone||'', startTime:rec.startTime, endTime:rec.endTime, workArea:rec.workArea, workDetail:rec.workDetail };
+      document.getElementById('noBeforeRecordWarn').classList.add('hidden');
+      document.getElementById('noMidRecordWarn').classList.add('hidden');
+      hide('pg0'); populateAutoInfo('after'); show('pg1after'); window.scrollTo(0,0);
     } catch(err) { hideOv(); toast('查詢失敗: ' + err.message, 'err'); }
   }
 }
+
 function _showPg1BeforeInfo() {
   const f = S.pg0Fields || {};
   document.getElementById('pg1_company').textContent = f.company || '—';
@@ -655,9 +736,12 @@ function _showPg1BeforeInfo() {
 }
 function backToPhaseSelect() { hideAllPages(); show('pg0'); window.scrollTo(0,0); }
 function hideAllPages() { ['pg0','pg1','pg1mid','pg1after','pg2','pg2mid','pg2after','pg3'].forEach(hide); }
+
+// ★ 優化二：populateAutoInfo 支援新欄位
 function populateAutoInfo(phase) {
   const f = S.baseFields || {};
-  ['inspector','workArea','workDetail','company','project','startTime'].forEach(key => {
+  const fields = ['inspector','oxygenSupervisor','phone','workArea','workDetail','company','project','startTime'];
+  fields.forEach(key => {
     const el = document.getElementById(`${phase}_${key}`);
     if (el) el.textContent = (key === 'startTime' && f[key]) ? f[key].replace('T',' ') : (f[key] || '—');
   });
@@ -685,6 +769,7 @@ function onCompanyChange() {
   ps.disabled = !co;
   document.getElementById('fDept').value = ''; document.getElementById('fSection').value = '';
   document.getElementById('noBeforeRecordWarn').classList.add('hidden');
+  document.getElementById('noMidRecordWarn').classList.add('hidden');
   if (!co) { updateProceedBtn(); return; }
   [...new Set(S.dd.filter(r=>r.company===co).map(r=>r.project))].sort()
     .forEach(p=>{ const o=document.createElement('option'); o.value=o.textContent=p; ps.appendChild(o); });
@@ -695,14 +780,29 @@ function onProjectChange() {
   const m=S.dd.find(r=>r.company===co&&r.project===prj);
   if(m){ document.getElementById('fDept').value=m.dept; document.getElementById('fSection').value=m.section; }
   document.getElementById('noBeforeRecordWarn').classList.add('hidden');
+  document.getElementById('noMidRecordWarn').classList.add('hidden');
   updateProceedBtn();
 }
 function setHint(id,msg,type){ const el=document.getElementById(id); if(el){el.textContent=msg;el.className='c-hint '+type;} }
 function showManual(){ S.isManual=true; document.getElementById('manualWrap').classList.add('show'); document.getElementById('btnManual').classList.add('hidden'); }
 function hideManual(){ S.isManual=false; document.getElementById('manualWrap').classList.remove('show'); document.getElementById('btnManual').classList.remove('hidden'); updateProceedBtn(); }
+
+// ★ 優化二：getFields 加入新欄位
 function getFields() {
   const base = S.pg0Fields || {};
-  return { company:base.company||'', project:base.project||'', dept:base.dept||'', section:base.section||'', inspector:document.getElementById('fInspector').value.trim(), startTime:document.getElementById('fStart').value, endTime:document.getElementById('fEnd').value, workArea:document.getElementById('fArea').value.trim(), workDetail:document.getElementById('fDetail').value.trim() };
+  return {
+    company:         base.company||'',
+    project:         base.project||'',
+    dept:            base.dept||'',
+    section:         base.section||'',
+    inspector:       document.getElementById('fInspector').value.trim(),
+    oxygenSupervisor:document.getElementById('fOxygenSupervisor').value.trim(),
+    phone:           document.getElementById('fPhone').value.trim(),
+    startTime:       document.getElementById('fStart').value,
+    endTime:         document.getElementById('fEnd').value,
+    workArea:        document.getElementById('fArea').value.trim(),
+    workDetail:      document.getElementById('fDetail').value.trim()
+  };
 }
 
 // ═══════════════════════════════════════════════════
@@ -734,7 +834,7 @@ function onFile(k,fl,phase){
   document.getElementById(`box_${phase}_${k}`).classList.toggle('done',store[k].length>0);
   const btnId=phase==='before'?'btnUpload':(phase==='mid'?'btnUploadMid':'btnUploadAfter');
   document.getElementById(btnId).classList.add('hidden');
-  S.G_PDF_B64 = ''; // 重新選圖後需重新生成 PDF
+  S.G_PDF_B64 = '';
 }
 function renderPreviews(k,phase){
   const store=phase==='before'?S.files:(phase==='mid'?S.filesMid:S.filesAfter);
@@ -755,7 +855,9 @@ function rmFile(k,i,phase){
 // ═══════════════════════════════════════════════════
 async function toPage2() {
   const f = getFields();
-  if (!f.inspector || !f.startTime || !f.endTime || !f.workArea || !f.workDetail) { toast('請填寫必填欄位（檢驗員、時間、地點）','err'); return; }
+  if (!f.inspector || !f.oxygenSupervisor || !f.phone || !f.startTime || !f.endTime || !f.workArea || !f.workDetail) {
+    toast('請填寫所有必填欄位（檢驗員、缺氧作業主管、聯絡方式、時間、地點）','err'); return;
+  }
   S.baseFields = { ...f };
   hide('pg1'); show('pg2'); window.scrollTo(0,0);
 }
@@ -772,7 +874,7 @@ function showDone(phase){
 }
 
 // ═══════════════════════════════════════════════════
-// PDF 生成（html2canvas → jsPDF 產生真實 PDF）
+// PDF 生成（★ 優化二：加入缺氧作業主管及聯絡方式至表格）
 // ═══════════════════════════════════════════════════
 async function exportPDF(phase) {
   const items    = phase === 'before' ? ITEMS_BEFORE : (phase === 'mid' ? ITEMS_MID : ITEMS_AFTER);
@@ -834,6 +936,7 @@ async function exportPDF(phase) {
         <tr><th style="${TH}">承攬商公司</th><td style="${TD}">${f.company||'—'}</td><th style="${TH}">工程名稱</th><td style="${TD}">${f.project||'—'}</td></tr>
         <tr><th style="${TH}">主辦部門</th><td style="${TD}">${f.dept||'—'}</td><th style="${TH}">主辦課別</th><td style="${TD}">${f.section||'—'}</td></tr>
         <tr><th style="${TH}">檢驗員</th><td style="${TD}">${f.inspector||'—'}</td><th style="${TH}">作業區域</th><td style="${TD}">${f.workArea||'—'}</td></tr>
+        <tr><th style="${TH}">缺氧作業主管</th><td style="${TD};font-weight:bold;color:#b45309">${f.oxygenSupervisor||'—'}</td><th style="${TH}">聯絡方式（手機）</th><td style="${TD};font-weight:bold;color:#b45309">${f.phone||'—'}</td></tr>
         <tr><th style="${TH}">開始時間</th><td style="${TD}">${(f.startTime||'').replace('T',' ')}</td><th style="${TH}">結束時間</th><td style="${TD}">${(f.endTime||'').replace('T',' ')}</td></tr>
         <tr><th style="${TH}">詳細位置</th><td style="${TD}" colspan="3">${f.workDetail||'—'}</td></tr>
         <tr><th style="${TH}">上傳時機</th><td style="${TD};font-weight:700" colspan="3">${phaseLabel}通報</td></tr>
@@ -900,7 +1003,7 @@ function previewPDF() {
 }
 
 // ═══════════════════════════════════════════════════
-// 上傳至雲端（送真實 PDF base64）
+// 上傳至雲端
 // ═══════════════════════════════════════════════════
 async function uploadToCloud(phase) {
   if (!S.G_PDF_B64) { toast('請先生成 PDF', 'err'); return; }
@@ -945,15 +1048,84 @@ function renderResults(rows) {
   const el = document.getElementById('qResults');
   if (!rows || !rows.length) { el.innerHTML='<div class="empty"><div class="ei">📭</div>查無符合條件記錄</div>'; return; }
   const PI = { before:{label:'作業前',cls:'before'}, mid:{label:'作業中',cls:'mid'}, after:{label:'作業後',cls:'after'} };
-  el.innerHTML = `<table><thead><tr><th>上傳時機</th><th>公司</th><th>工程</th><th>檢驗員</th><th>作業地點</th><th>詳細位置</th><th>開始</th><th>結束</th><th>通報紀錄</th></tr></thead><tbody>
+  el.innerHTML = `<table><thead><tr><th>上傳時機</th><th>公司</th><th>工程</th><th>檢驗員</th><th>缺氧作業主管</th><th>聯絡手機</th><th>作業地點</th><th>開始</th><th>結束</th><th>通報紀錄</th></tr></thead><tbody>
     ${rows.map(r=>{
       const pi=PI[r.phase]||{label:r.phase||'—',cls:''};
       const link=r.pdfUrl&&r.pdfUrl.startsWith('http')
         ?`<a href="${r.pdfUrl}" target="_blank" class="pdf-btn"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>查看 PDF</a>`
         :`<span style="color:var(--text-3);font-size:.76rem">無檔案</span>`;
-      return `<tr><td><span class="phase-tag ${pi.cls}">${pi.label}</span></td><td>${r.company}</td><td>${r.project}</td><td>${r.inspector}</td><td>${r.workArea}</td><td>${r.workDetail||'—'}</td><td class="mono">${(r.startTime||'').replace('T',' ')}</td><td class="mono">${(r.endTime||'').replace('T',' ')}</td><td>${link}</td></tr>`;
+      return `<tr><td><span class="phase-tag ${pi.cls}">${pi.label}</span></td><td>${r.company}</td><td>${r.project}</td><td>${r.inspector}</td><td>${r.oxygenSupervisor||'—'}</td><td>${r.phone||'—'}</td><td>${r.workArea}</td><td class="mono">${(r.startTime||'').replace('T',' ')}</td><td class="mono">${(r.endTime||'').replace('T',' ')}</td><td>${link}</td></tr>`;
     }).join('')}
   </tbody></table>`;
+}
+
+// ═══════════════════════════════════════════════════
+// ★ 優化三：當日未完成通報提醒
+// ═══════════════════════════════════════════════════
+async function checkIncomplete() {
+  const today = new Date().toISOString().slice(0,10);
+  const panel = document.getElementById('incompletePanel');
+  const bd    = document.getElementById('incompleteBd');
+  const dtLbl = document.getElementById('incompleteDateLabel');
+
+  // 格式化顯示日期
+  const d = new Date(today + 'T00:00:00');
+  dtLbl.textContent = `${d.getFullYear()} 年 ${d.getMonth()+1} 月 ${d.getDate()} 日`;
+
+  panel.classList.remove('hidden');
+  bd.innerHTML = '<div class="empty"><div class="ei">⏳</div>載入中…</div>';
+  panel.scrollIntoView({ behavior:'smooth', block:'start' });
+
+  try {
+    // 拉今日所有通報記錄（不限 phase）
+    const params = new URLSearchParams({ action:'query', date: today });
+    const rows = await fetch(`${GAS_URL}?${params}`).then(r=>r.json());
+
+    if (!rows || rows.length === 0) {
+      bd.innerHTML = '<div class="empty"><div class="ei">📭</div>今日尚無任何通報記錄</div>';
+      return;
+    }
+
+    // 以 "公司|工程" 為 key，統計各 phase 是否存在
+    const map = {};
+    rows.forEach(r => {
+      const key = `${r.company}|||${r.project}`;
+      if (!map[key]) map[key] = { company: r.company, project: r.project, phases: new Set() };
+      if (r.phase) map[key].phases.add(r.phase);
+    });
+
+    const entries = Object.values(map);
+    const incomplete = entries.filter(e => !e.phases.has('before') || !e.phases.has('mid') || !e.phases.has('after'));
+    const complete   = entries.filter(e =>  e.phases.has('before') &&  e.phases.has('mid') &&  e.phases.has('after'));
+
+    if (incomplete.length === 0) {
+      bd.innerHTML = `<div style="padding:16px;text-align:center;color:var(--green);font-weight:700;font-size:.95rem">🎉 今日所有廠商通報均已完整（共 ${complete.length} 筆）</div>`;
+      return;
+    }
+
+    const phaseLabel = { before:'作業前', mid:'作業中', after:'作業後' };
+    bd.innerHTML = `
+      <p style="font-size:.78rem;color:var(--text-2);margin-bottom:14px">
+        共發現 <strong style="color:var(--red)">${incomplete.length}</strong> 筆通報尚未完成（全部 ${entries.length} 筆）
+      </p>
+      ${incomplete.map(e => {
+        const tags = ['before','mid','after'].map(ph => {
+          const ok = e.phases.has(ph);
+          return `<span class="inc-tag ${ok?'ok':'miss'}">${ok?'✓':'✗'} ${phaseLabel[ph]}</span>`;
+        }).join('');
+        return `<div class="incomplete-item">
+          <div class="inc-ico">${e.phases.has('before') ? (e.phases.has('mid') ? '🟡' : '🟠') : '🔴'}</div>
+          <div class="inc-body">
+            <div class="inc-co">${e.company}</div>
+            <div class="inc-prj">${e.project}</div>
+            <div class="inc-tags">${tags}</div>
+          </div>
+        </div>`;
+      }).join('')}
+      ${complete.length > 0 ? `<p style="font-size:.74rem;color:var(--text-3);margin-top:14px">另有 ${complete.length} 筆廠商通報已全部完成 ✓</p>` : ''}`;
+  } catch(e) {
+    bd.innerHTML = `<div class="empty"><div class="ei">❌</div>查詢失敗：${e.message}</div>`;
+  }
 }
 
 // ═══════════════════════════════════════════════════
@@ -972,6 +1144,5 @@ const show=id=>document.getElementById(id)?.classList.remove('hidden');
 const hide=id=>document.getElementById(id)?.classList.add('hidden');
 function clearQ(){ ['qCo','qPrj','qPhase'].forEach(id=>document.getElementById(id).selectedIndex=0); document.getElementById('qInsp').value=''; document.getElementById('qDate').value=''; }
 </script>
-
 </body>
 </html>
