@@ -616,7 +616,7 @@ tr:hover td{background:var(--surface-2)}
 // ═══════════════════════════════════════════════════
 // ★ 配置
 // ═══════════════════════════════════════════════════
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbyIWyXpqby8uVw4BnFX21FPUV48Q04LiMsCTCSJHyVsbPjOWLNNpsjKMhGVUKL6qRo6/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyqjstCUdSL4htPXnhqWwC3pFcYHC-fGZXpo1f1GxtjEwtwZj_0-0XwGahwKvyDcFe3/exec';
 
 const ITEMS_BEFORE = [
   { k:'kaohsiung',   label:'高市檢申報擷取畫面' },
@@ -919,32 +919,36 @@ function showDone(phase){
 // PDF 生成（★ 優化二：加入缺氧作業主管及聯絡方式至表格）
 // ═══════════════════════════════════════════════════
 async function exportPDF(phase) {
-  const items    = phase === 'before' ? ITEMS_BEFORE : (phase === 'mid' ? ITEMS_MID : ITEMS_AFTER);
-  const store    = phase === 'before' ? S.files : (phase === 'mid' ? S.filesMid : S.filesAfter);
+  const items     = phase === 'before' ? ITEMS_BEFORE : (phase === 'mid' ? ITEMS_MID : ITEMS_AFTER);
+  const store     = phase === 'before' ? S.files : (phase === 'mid' ? S.filesMid : S.filesAfter);
   const previewId = phase === 'before' ? 'pdfPreviewArea' : (phase === 'mid' ? 'pdfPreviewAreaMid' : 'pdfPreviewAreaAfter');
-  const btnId    = phase === 'before' ? 'btnUpload' : (phase === 'mid' ? 'btnUploadMid' : 'btnUploadAfter');
+  const btnId     = phase === 'before' ? 'btnUpload' : (phase === 'mid' ? 'btnUploadMid' : 'btnUploadAfter');
 
   const missing = items.filter(item => !store[item.k] || store[item.k].length === 0);
   if (missing.length > 0) { toast(`尚有 ${missing.length} 項未上傳`, 'err'); return; }
 
   const f = phase === 'before' ? getFields() : (S.baseFields || {});
   showOv('產生報表中...', '正在處理圖片', [
-    { id: 'p1', label: '讀取圖片' },
-    { id: 'p2', label: '排版報表' },
-    { id: 'p3', label: '產生 PDF' }
+    { id:'p1', label:'讀取圖片' },
+    { id:'p2', label:'排版表頭' },
+    { id:'p3', label:'逐張排入照片' }
   ]);
 
   try {
+    // ── Step 1：將所有圖片轉成 dataUrl ──────────────
     ovStep('p1', 'active');
-    const imagePreviews = {};
+    // allPhotos = [{ label, dataUrl }, ...]，依 item 順序排列
+    const allPhotos = [];
     for (const item of items) {
-      if (store[item.k]) {
-        const imgFiles = store[item.k].filter(fi => fi.type.startsWith('image/'));
-        imagePreviews[item.k] = await Promise.all(imgFiles.map(fi => fileToBase64(fi)));
+      const files = (store[item.k] || []).filter(fi => fi.type.startsWith('image/'));
+      for (const fi of files) {
+        const b64 = await fileToBase64(fi);
+        allPhotos.push({ label: item.label, dataUrl: b64.dataUrl });
       }
     }
     ovStep('p1', 'done');
 
+    // ── Step 2：渲染「表頭 + 基本資料表格 + 小標」為一張圖 ─
     ovStep('p2', 'active');
     const phaseLabels = { before:'作業前', mid:'作業中', after:'作業後' };
     const phaseLabel  = phaseLabels[phase] || '';
@@ -953,62 +957,99 @@ async function exportPDF(phase) {
     const TH = 'border:1px solid #cbd5e1;padding:10px 12px;background:#f8fafc;color:#334155;width:22%;vertical-align:top;font-size:15px';
     const TD = 'border:1px solid #cbd5e1;padding:10px 12px;vertical-align:top;font-size:15px';
 
-    let imgRows = '';
-    for (const item of items) {
-      (imagePreviews[item.k] || []).forEach(img => {
-        imgRows += `<div style="border:1px solid #ddd;padding:8px;text-align:center;margin-bottom:10px">
-          <img src="${img.dataUrl}" style="max-width:100%;max-height:240px;object-fit:contain;display:block;margin:0 auto">
-          <div style="font-size:15px;font-weight:bold;margin-top:7px;color:#334155">${item.label}</div>
-        </div>`;
-      });
-    }
-
-    const container = document.createElement('div');
-    container.id = '__pdfRender';
-    container.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;background:#fff;padding:40px;font-family:Arial,sans-serif;font-size:16px;line-height:1.7;color:#111;box-sizing:border-box';
-    container.innerHTML = `
-      <div style="text-align:center;margin-bottom:28px;border-bottom:3px solid ${phColor};padding-bottom:16px">
-        <h1 style="margin:0;color:#1d3d9e;font-size:28px;letter-spacing:.02em">局限空間作業通報書</h1>
-        <div style="font-size:15px;color:#555;margin-top:6px">Confined Space Work Notification Report</div>
-        <span style="display:inline-block;margin-top:10px;padding:4px 18px;border-radius:20px;font-size:15px;font-weight:700;background:${phBg};color:${phColor};border:1px solid ${phColor}">📌 ${phaseLabel}通報</span>
+    const hdrEl = document.createElement('div');
+    hdrEl.style.cssText = 'position:fixed;left:-9999px;top:0;width:750px;background:#fff;padding:32px 36px;font-family:Arial,sans-serif;font-size:15px;line-height:1.7;color:#111;box-sizing:border-box';
+    hdrEl.innerHTML = `
+      <div style="text-align:center;margin-bottom:22px;border-bottom:3px solid ${phColor};padding-bottom:14px">
+        <h1 style="margin:0;color:#1d3d9e;font-size:26px;letter-spacing:.02em">局限空間作業通報書</h1>
+        <div style="font-size:14px;color:#555;margin-top:5px">Confined Space Work Notification Report</div>
+        <span style="display:inline-block;margin-top:8px;padding:4px 16px;border-radius:20px;font-size:14px;font-weight:700;background:${phBg};color:${phColor};border:1px solid ${phColor}">📌 ${phaseLabel}通報</span>
       </div>
-      <div style="text-align:right;font-size:13px;color:#888;margin-bottom:14px">產出時間：${new Date().toLocaleString('zh-TW')}</div>
-      <div style="background:#eef2fc;font-weight:bold;color:#2952c8;padding:9px 14px;margin-bottom:10px;border-left:6px solid #2952c8;font-size:16px">基本資料</div>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:24px;font-size:15px">
+      <div style="text-align:right;font-size:12px;color:#888;margin-bottom:12px">產出時間：${new Date().toLocaleString('zh-TW')}</div>
+      <div style="background:#eef2fc;font-weight:bold;color:#2952c8;padding:8px 12px;margin-bottom:8px;border-left:6px solid #2952c8;font-size:15px">基本資料</div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:18px;font-size:14px">
         <tr><th style="${TH}">承攬商公司</th><td style="${TD}">${f.company||'—'}</td><th style="${TH}">工程名稱</th><td style="${TD}">${f.project||'—'}</td></tr>
         <tr><th style="${TH}">主辦部門</th><td style="${TD}">${f.dept||'—'}</td><th style="${TH}">主辦課別</th><td style="${TD}">${f.section||'—'}</td></tr>
         <tr><th style="${TH}">檢驗員</th><td style="${TD}">${f.inspector||'—'}</td><th style="${TH}">作業區域</th><td style="${TD}">${f.workArea||'—'}</td></tr>
-        <tr><th style="${TH}">缺氧作業主管</th><td style="${TD};font-weight:bold;color:#b45309;font-size:15px">${f.oxygenSupervisor||'—'}</td><th style="${TH}">聯絡方式（手機）</th><td style="${TD};font-weight:bold;color:#b45309;font-size:15px">${f.phone||'—'}</td></tr>
+        <tr><th style="${TH}">缺氧作業主管</th><td style="${TD};font-weight:bold;color:#b45309">${f.oxygenSupervisor||'—'}</td><th style="${TH}">聯絡方式（手機）</th><td style="${TD};font-weight:bold;color:#b45309">${f.phone||'—'}</td></tr>
         <tr><th style="${TH}">開始時間</th><td style="${TD}">${(f.startTime||'').replace('T',' ')}</td><th style="${TH}">結束時間</th><td style="${TD}">${(f.endTime||'').replace('T',' ')}</td></tr>
         <tr><th style="${TH}">詳細位置</th><td style="${TD}" colspan="3">${f.workDetail||'—'}</td></tr>
-        <tr><th style="${TH}">上傳時機</th><td style="${TD};font-weight:700;font-size:15px" colspan="3">${phaseLabel}通報</td></tr>
+        <tr><th style="${TH}">上傳時機</th><td style="${TD};font-weight:700" colspan="3">${phaseLabel}通報</td></tr>
       </table>
-      <div style="background:#eef2fc;font-weight:bold;color:#2952c8;padding:9px 14px;margin-bottom:14px;border-left:6px solid #2952c8;font-size:16px">查核照片與附件（${phaseLabel}）</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">${imgRows}</div>`;
-    document.body.appendChild(container);
+      <div style="background:#eef2fc;font-weight:bold;color:#2952c8;padding:8px 12px;margin-bottom:6px;border-left:6px solid #2952c8;font-size:15px">查核照片與附件（${phaseLabel}）</div>`;
+    document.body.appendChild(hdrEl);
+
+    const hdrCanvas = await html2canvas(hdrEl, { scale:2, useCORS:true, backgroundColor:'#ffffff', logging:false });
+    document.body.removeChild(hdrEl);
     ovStep('p2', 'done');
 
+    // ── Step 3：建立 jsPDF，逐張加入照片，換頁前判斷空間 ─
     ovStep('p3', 'active');
-    const canvas = await html2canvas(container, { scale:2, useCORS:true, allowTaint:true, backgroundColor:'#ffffff', logging:false });
-    document.body.removeChild(container);
-
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
-    const A4_W = 210, A4_H = 297;
-    const ratio = A4_W / (canvas.width / 2);
-    const pageHpx = A4_H / ratio;
-    const totalH = canvas.height / 2;
-    let yOff = 0, pageNum = 0;
-    while (yOff < totalH) {
-      if (pageNum > 0) pdf.addPage();
-      const sliceH = Math.min(pageHpx, totalH - yOff);
-      const slicePx = Math.ceil(sliceH * 2);
-      const tmp = document.createElement('canvas');
-      tmp.width = canvas.width; tmp.height = slicePx;
-      tmp.getContext('2d').drawImage(canvas, 0, Math.round(yOff*2), canvas.width, slicePx, 0, 0, canvas.width, slicePx);
-      pdf.addImage(tmp.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, A4_W, sliceH * ratio);
-      yOff += sliceH; pageNum++;
+    const pdf   = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    const PW    = 210;   // A4 寬 mm
+    const PH    = 297;   // A4 高 mm
+    const ML    = 12;    // 左右邊距 mm
+    const MT    = 10;    // 上下邊距 mm
+    const CW    = PW - ML * 2;  // 可用寬 mm
+    const CH    = PH - MT * 2;  // 可用高 mm
+
+    // 將表頭圖放入第一頁
+    const hdrMmH = (hdrCanvas.height / hdrCanvas.width) * CW;
+    pdf.addImage(hdrCanvas.toDataURL('image/jpeg', 0.95), 'JPEG', ML, MT, CW, hdrMmH);
+    let curY = MT + hdrMmH + 4; // 目前游標（mm）
+
+    // 照片排列：每行 2 張，每張寬 = (CW - gap) / 2
+    const GAP    = 4;    // 兩欄間距 mm
+    const IMGW   = (CW - GAP) / 2;  // 每張圖寬 mm
+    const CAPH   = 8;    // 圖說高度（含間距）mm
+    const PADV   = 3;    // 圖框上下內距 mm
+
+    // 為每張照片建立 canvas 並計算其 mm 高度
+    const photoData = [];
+    for (const photo of allPhotos) {
+      const img = new Image();
+      img.src = photo.dataUrl;
+      await new Promise(res => { img.onload = res; img.onerror = res; });
+      // 縮放至寬度 IMGW，計算等比高度（上限 80mm 以避免過高）
+      const ratio  = img.naturalWidth > 0 ? img.naturalHeight / img.naturalWidth : 0.75;
+      const imgH   = Math.min(80, IMGW * ratio);
+      const boxH   = imgH + CAPH + PADV * 2; // 含圖說與內距的總框高 mm
+      photoData.push({ dataUrl: photo.dataUrl, label: photo.label, imgH, boxH });
     }
+
+    // 逐對（每行兩張）排入 PDF
+    for (let i = 0; i < photoData.length; i += 2) {
+      const left  = photoData[i];
+      const right = photoData[i + 1] || null;
+      const rowH  = right ? Math.max(left.boxH, right.boxH) : left.boxH;
+
+      // 若剩餘空間不足這一行，換頁
+      if (curY + rowH > PH - MT) {
+        pdf.addPage();
+        curY = MT;
+      }
+
+      // 放左欄
+      pdf.setDrawColor(200, 200, 200);
+      pdf.setLineWidth(0.3);
+      pdf.rect(ML, curY, IMGW, rowH);
+      pdf.addImage(left.dataUrl, 'JPEG', ML + 1, curY + PADV, IMGW - 2, left.imgH, undefined, 'FAST');
+      pdf.setFontSize(10);
+      pdf.setTextColor(50, 50, 50);
+      pdf.text(left.label, ML + IMGW / 2, curY + PADV + left.imgH + CAPH / 2 + 1.5, { align:'center' });
+
+      // 放右欄（若有）
+      if (right) {
+        const rx = ML + IMGW + GAP;
+        pdf.rect(rx, curY, IMGW, rowH);
+        pdf.addImage(right.dataUrl, 'JPEG', rx + 1, curY + PADV, IMGW - 2, right.imgH, undefined, 'FAST');
+        pdf.text(right.label, rx + IMGW / 2, curY + PADV + right.imgH + CAPH / 2 + 1.5, { align:'center' });
+      }
+
+      curY += rowH + 3;
+    }
+
     S.G_PDF_B64 = pdf.output('datauristring').split(',')[1];
     ovStep('p3', 'done');
     hideOv();
@@ -1017,7 +1058,7 @@ async function exportPDF(phase) {
     previewArea.classList.remove('hidden');
     previewArea.innerHTML = `
       <div style="padding:14px;background:#fff;border:1px solid #ccc;border-radius:8px;margin-bottom:10px">
-        <p style="color:var(--green);font-weight:600">✅ PDF 已產生</p>
+        <p style="color:var(--green);font-weight:600">✅ PDF 已產生（共 ${pdf.getNumberOfPages()} 頁）</p>
         <p style="font-size:13px;color:var(--text-2)">可先點「預覽 PDF」確認內容，再點「上傳至雲端硬碟」送出。</p>
       </div>
       <button class="btn btn-download" onclick="previewPDF()">
@@ -1025,11 +1066,13 @@ async function exportPDF(phase) {
         預覽 PDF
       </button>`;
     document.getElementById(btnId).classList.remove('hidden');
-    toast('PDF 已產生，可預覽後上傳', 'ok');
+    toast(`PDF 已產生（共 ${pdf.getNumberOfPages()} 頁），可預覽後上傳`, 'ok');
 
   } catch(e) {
     const c = document.getElementById('__pdfRender');
-    if (c) document.body.removeChild(c);
+    if (c && c.parentNode) c.parentNode.removeChild(c);
+    const h = document.getElementById('__hdrRender');
+    if (h && h.parentNode) h.parentNode.removeChild(h);
     hideOv();
     toast('PDF 生成失敗：' + e.message, 'err');
   }
