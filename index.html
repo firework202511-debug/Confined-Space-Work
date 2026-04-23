@@ -1008,48 +1008,38 @@ async function exportPDF(phase) {
       yOff += sliceH; pageNum++;
     }
 
-    // ── 步驟③：逐張加入照片（換頁前完整計算，確保不跨頁分割）──
-    const LABEL_H   = 9;   // 標籤文字高度 mm
-    const IMG_GAP   = 6;   // 每張圖片間距 mm
-    const MAX_IMG_H = 170; // 單張圖片最大高度 mm（確保至少能放在一頁內）
+    // ── 步驟③：逐張加入照片（用 html2canvas 渲染標籤+圖片，保留中文字型，換頁前確認空間）──
+    // ★ 不使用 pdf.text() — jsPDF 預設不支援中文，標籤一律用 html2canvas 渲染
+    const IMG_GAP = 6; // 每個圖片 block 間距 mm
 
     for (const item of items) {
       const imgs = imagePreviews[item.k] || [];
       for (const imgData of imgs) {
-        // 取得圖片原始尺寸，計算在 PDF 中的顯示尺寸（維持長寬比）
-        const imgEl = await new Promise(resolve => {
-          const img = new Image(); img.onload = () => resolve(img); img.src = imgData.dataUrl;
+        // 將「標籤 + 照片」組成一個 div，以 html2canvas 渲染（瀏覽器負責中文字型）
+        const photoDiv = document.createElement('div');
+        photoDiv.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;background:#fff;padding:0 0 8px 0;font-family:"Noto Sans TC",Arial,sans-serif;box-sizing:border-box';
+        photoDiv.innerHTML = `
+          <div style="font-size:15px;font-weight:bold;color:#334155;padding:8px 0 6px 0">${item.label}</div>
+          <div style="border:1px solid #cbd5e1;text-align:center">
+            <img src="${imgData.dataUrl}" style="max-width:100%;max-height:420px;object-fit:contain;display:block;margin:0 auto">
+          </div>`;
+        document.body.appendChild(photoDiv);
+
+        const photoCanvas = await html2canvas(photoDiv, {
+          scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#ffffff', logging: false
         });
-        const natW = imgEl.naturalWidth, natH = imgEl.naturalHeight;
-        if (!natW || !natH) continue; // 跳過無效圖片
+        document.body.removeChild(photoDiv);
 
-        let imgW = contentW;
-        let imgH = imgW * (natH / natW);
-        if (imgH > MAX_IMG_H) {           // 超高直向照片：限制高度，等比縮小寬度
-          imgH = MAX_IMG_H;
-          imgW = imgH * (natW / natH);
-        }
-        const blockH = LABEL_H + imgH + IMG_GAP;
+        // 計算此 block 在 PDF 上的高度（mm），上限為單頁可用高度
+        const blockHmm = Math.min((photoCanvas.height / 2) * ratio, A4_H - MARGIN * 2 - 10);
 
-        // ★ 核心修正：若剩餘空間不足容納整個圖片 block，先換頁再加入
-        if (currentY + blockH > A4_H - MARGIN) {
+        // ★ 核心修正：若剩餘空間不足容納整個 block，先換頁再加入
+        if (currentY + blockHmm + IMG_GAP > A4_H - MARGIN) {
           pdf.addPage(); currentY = MARGIN;
         }
 
-        // 標籤文字
-        pdf.setFontSize(11);
-        pdf.setFont(undefined, 'bold');
-        pdf.setTextColor(51, 65, 85);
-        pdf.text(item.label, MARGIN, currentY + 6);
-        currentY += LABEL_H;
-
-        // 圖片（水平置中，帶細框線）
-        const imgX = MARGIN + (contentW - imgW) / 2;
-        pdf.setDrawColor(203, 213, 225);
-        pdf.rect(imgX, currentY, imgW, imgH);
-        const imgFormat = (imgData.type === 'image/png') ? 'PNG' : 'JPEG';
-        pdf.addImage(imgData.dataUrl, imgFormat, imgX, currentY, imgW, imgH);
-        currentY += imgH + IMG_GAP;
+        pdf.addImage(photoCanvas.toDataURL('image/jpeg', 0.92), 'JPEG', MARGIN, currentY, contentW, blockHmm);
+        currentY += blockHmm + IMG_GAP;
       }
     }
 
