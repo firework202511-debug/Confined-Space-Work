@@ -953,16 +953,7 @@ async function exportPDF(phase) {
     const TH = 'border:1px solid #cbd5e1;padding:10px 12px;background:#f8fafc;color:#334155;width:22%;vertical-align:top;font-size:15px';
     const TD = 'border:1px solid #cbd5e1;padding:10px 12px;vertical-align:top;font-size:15px';
 
-    let imgRows = '';
-    for (const item of items) {
-      (imagePreviews[item.k] || []).forEach(img => {
-        imgRows += `<div style="border:1px solid #ddd;padding:8px;text-align:center;margin-bottom:10px">
-          <img src="${img.dataUrl}" style="max-width:100%;max-height:240px;object-fit:contain;display:block;margin:0 auto">
-          <div style="font-size:15px;font-weight:bold;margin-top:7px;color:#334155">${item.label}</div>
-        </div>`;
-      });
-    }
-
+    // ── 步驟①：只渲染標題 + 基本資料表格（不含照片）──
     const container = document.createElement('div');
     container.id = '__pdfRender';
     container.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;background:#fff;padding:40px;font-family:Arial,sans-serif;font-size:16px;line-height:1.7;color:#111;box-sizing:border-box';
@@ -983,32 +974,85 @@ async function exportPDF(phase) {
         <tr><th style="${TH}">詳細位置</th><td style="${TD}" colspan="3">${f.workDetail||'—'}</td></tr>
         <tr><th style="${TH}">上傳時機</th><td style="${TD};font-weight:700;font-size:15px" colspan="3">${phaseLabel}通報</td></tr>
       </table>
-      <div style="background:#eef2fc;font-weight:bold;color:#2952c8;padding:9px 14px;margin-bottom:14px;border-left:6px solid #2952c8;font-size:16px">查核照片與附件（${phaseLabel}）</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">${imgRows}</div>`;
+      <div style="background:#eef2fc;font-weight:bold;color:#2952c8;padding:9px 14px;margin-bottom:4px;border-left:6px solid #2952c8;font-size:16px">查核照片與附件（${phaseLabel}）</div>`;
     document.body.appendChild(container);
+
+    const headerCanvas = await html2canvas(container, { scale:2, useCORS:true, allowTaint:true, backgroundColor:'#ffffff', logging:false });
+    document.body.removeChild(container);
     ovStep('p2', 'done');
 
     ovStep('p3', 'active');
-    const canvas = await html2canvas(container, { scale:2, useCORS:true, allowTaint:true, backgroundColor:'#ffffff', logging:false });
-    document.body.removeChild(container);
-
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
     const A4_W = 210, A4_H = 297;
-    const ratio = A4_W / (canvas.width / 2);
-    const pageHpx = A4_H / ratio;
-    const totalH = canvas.height / 2;
-    let yOff = 0, pageNum = 0;
-    while (yOff < totalH) {
+    const MARGIN     = 10;               // 頁邊留白 mm
+    const contentW   = A4_W - MARGIN * 2; // 190mm
+    const ratio      = contentW / (headerCanvas.width / 2); // mm / logical-px
+    const pageHmm    = A4_H - MARGIN * 2; // 277mm 每頁可用高度
+    const pageHpx    = pageHmm / ratio;    // 每頁對應的 logical-px
+
+    const headerTotalH = headerCanvas.height / 2; // 表格區邏輯像素高度
+
+    // ── 步驟②：插入標題 + 基本資料（遇頁底自動切頁，但此區塊文字不含圖片，切割無妨）──
+    let yOff = 0, pageNum = 0, currentY = MARGIN;
+    while (yOff < headerTotalH) {
       if (pageNum > 0) pdf.addPage();
-      const sliceH = Math.min(pageHpx, totalH - yOff);
+      const sliceH  = Math.min(pageHpx, headerTotalH - yOff);
       const slicePx = Math.ceil(sliceH * 2);
       const tmp = document.createElement('canvas');
-      tmp.width = canvas.width; tmp.height = slicePx;
-      tmp.getContext('2d').drawImage(canvas, 0, Math.round(yOff*2), canvas.width, slicePx, 0, 0, canvas.width, slicePx);
-      pdf.addImage(tmp.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, A4_W, sliceH * ratio);
+      tmp.width = headerCanvas.width; tmp.height = slicePx;
+      tmp.getContext('2d').drawImage(headerCanvas, 0, Math.round(yOff * 2), headerCanvas.width, slicePx, 0, 0, headerCanvas.width, slicePx);
+      const sliceHmm = sliceH * ratio;
+      pdf.addImage(tmp.toDataURL('image/jpeg', 0.92), 'JPEG', MARGIN, MARGIN, contentW, sliceHmm);
+      currentY = MARGIN + sliceHmm; // 此頁目前寫到的 Y 位置
       yOff += sliceH; pageNum++;
     }
+
+    // ── 步驟③：逐張加入照片（換頁前完整計算，確保不跨頁分割）──
+    const LABEL_H   = 9;   // 標籤文字高度 mm
+    const IMG_GAP   = 6;   // 每張圖片間距 mm
+    const MAX_IMG_H = 170; // 單張圖片最大高度 mm（確保至少能放在一頁內）
+
+    for (const item of items) {
+      const imgs = imagePreviews[item.k] || [];
+      for (const imgData of imgs) {
+        // 取得圖片原始尺寸，計算在 PDF 中的顯示尺寸（維持長寬比）
+        const imgEl = await new Promise(resolve => {
+          const img = new Image(); img.onload = () => resolve(img); img.src = imgData.dataUrl;
+        });
+        const natW = imgEl.naturalWidth, natH = imgEl.naturalHeight;
+        if (!natW || !natH) continue; // 跳過無效圖片
+
+        let imgW = contentW;
+        let imgH = imgW * (natH / natW);
+        if (imgH > MAX_IMG_H) {           // 超高直向照片：限制高度，等比縮小寬度
+          imgH = MAX_IMG_H;
+          imgW = imgH * (natW / natH);
+        }
+        const blockH = LABEL_H + imgH + IMG_GAP;
+
+        // ★ 核心修正：若剩餘空間不足容納整個圖片 block，先換頁再加入
+        if (currentY + blockH > A4_H - MARGIN) {
+          pdf.addPage(); currentY = MARGIN;
+        }
+
+        // 標籤文字
+        pdf.setFontSize(11);
+        pdf.setFont(undefined, 'bold');
+        pdf.setTextColor(51, 65, 85);
+        pdf.text(item.label, MARGIN, currentY + 6);
+        currentY += LABEL_H;
+
+        // 圖片（水平置中，帶細框線）
+        const imgX = MARGIN + (contentW - imgW) / 2;
+        pdf.setDrawColor(203, 213, 225);
+        pdf.rect(imgX, currentY, imgW, imgH);
+        const imgFormat = (imgData.type === 'image/png') ? 'PNG' : 'JPEG';
+        pdf.addImage(imgData.dataUrl, imgFormat, imgX, currentY, imgW, imgH);
+        currentY += imgH + IMG_GAP;
+      }
+    }
+
     S.G_PDF_B64 = pdf.output('datauristring').split(',')[1];
     ovStep('p3', 'done');
     hideOv();
